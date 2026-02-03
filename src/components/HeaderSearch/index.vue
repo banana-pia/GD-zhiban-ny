@@ -79,6 +79,7 @@ function close() {
 }
 
 function change(val) {
+  debugger
   const path = val.path
   const query = val.query
   if (isHttp(path)) {
