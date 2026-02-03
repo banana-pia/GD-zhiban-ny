@@ -1,9 +1,9 @@
 import auth from '@/plugins/auth'
 import router, { constantRoutes, dynamicRoutes } from '@/router'
 import { getRouters } from '@/api/menu'
-import Layout from '@/layout/index'
+import Layout from '@/layoutSystem/index'
 import ParentView from '@/components/ParentView'
-import InnerLink from '@/layout/components/InnerLink'
+import InnerLink from '@/layoutSystem/components/InnerLink'
 
 // 匹配views里面所有的.vue文件
 const modules = import.meta.glob('./../../views/**/*.vue')
@@ -30,7 +30,7 @@ const usePermissionStore = defineStore(
         this.topbarRouters = routes
       },
       setSidebarRouters(routes) {
-        this.sidebarRouters = routes
+        this.sidebarRouters = routes.filter(route => route.name !== 'layout')
       },
       generateRoutes(roles) {
         return new Promise(resolve => {

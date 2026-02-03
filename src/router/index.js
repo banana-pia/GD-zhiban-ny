@@ -1,6 +1,6 @@
 import { createWebHistory, createRouter } from 'vue-router'
 /* Layout */
-import Layout from '@/layout'
+import Layout from '@/layoutSystem'
 
 /**
  * Note: 路由配置项
@@ -28,7 +28,7 @@ import Layout from '@/layout'
 export const constantRoutes = [
   {
     path: '/redirect',
-    component: Layout,
+    component:Layout,
     hidden: true,
     children: [
       {
@@ -58,18 +58,36 @@ export const constantRoutes = [
     hidden: true
   },
   {
-    path: '',
-    component: Layout,
-    redirect: '/index',
+    path: '/',
+    name:'layout',
+    component: () => import('@/layout/header.vue'),
     children: [
+       {
+        path: 'dutylog',
+        name: 'dutylog',
+        component: () => import('@/views/duty/dutylog/index.vue')
+      },
       {
-        path: '/index',
-        component: () => import('@/views/index'),
-        name: 'Index',
-        meta: { title: '首页', icon: 'dashboard', affix: true }
-      }
+        path: 'militaryStrength',
+        name: 'militaryStrength',
+        component: () => import('@/views/duty/militaryStrength/index.vue')
+      },
     ]
+
   },
+  // {
+  //   path: '/admin',
+  //   component: Layout,
+  //   redirect: '/admin/index',
+  //   children: [
+  //     {
+  //       path: 'index',
+  //       component: () => import('@/views/index'),
+  //       name: 'Index',
+  //       meta: { title: '首页', icon: 'dashboard', affix: true }
+  //     }
+  //   ]
+  // },
   {
     path: '/user',
     component: Layout,
