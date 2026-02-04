@@ -12,3 +12,28 @@ export const saveDuty = (data) => {
     data
   })
 }
+
+export const queryDuty = (data) => {
+  return request({
+    url: '/duty/query',
+    method: 'post',
+    data
+  })
+}
+
+export const deleteDuty = (entityId) => {
+  return request({
+    url: '/duty/removeById.do',
+    method: 'delete',
+    params: {
+      entityID: entityId
+    }
+  })
+}
+
+export const listGdPerson = () => {
+  return request({
+    url: '/GdPerson/list',
+    method: 'get'
+  })
+}

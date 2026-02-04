@@ -46,11 +46,16 @@
       stripe
       style="width: 100%"
     >
-      <el-table-column prop="name" label="值班人员" />
-      <el-table-column prop="position" label="职务" />
-      <el-table-column prop="seat" label="值班席位" />
-      <el-table-column prop="team" label="执勤小队" />
-      <el-table-column prop="dutyTime" label="值班时间" />
+      <el-table-column prop="personId" label="值班人员" />
+      <el-table-column prop="deptId" label="单位" />
+      <el-table-column prop="dutyTeam" label="值班分队" />
+      <el-table-column prop="startTime" label="开始时间" />
+      <el-table-column prop="endTime" label="结束时间" />
+      <el-table-column prop="personNum" label="人数" />
+      <el-table-column prop="seatName" label="值班席位" />
+      <el-table-column prop="seatPhone" label="席位电话" />
+      <el-table-column prop="leader" label="负责人" />
+      <el-table-column prop="contactPhone" label="联系人电话" />
 
       <el-table-column label="操作" width="160" fixed="right">
         <template #default="{ row }">
@@ -144,7 +149,7 @@
             v-model="formData.startTime"
             placeholder="值班开始时间"
             type="datetime"
-            value-format="YYYY-MM-DDTHH:mm:ss"
+            value-format="YYYY-MM-DD HH:mm:ss"
           />
         </el-form-item>
         <el-form-item label="结束时间" prop="endTime">
@@ -152,7 +157,7 @@
             v-model="formData.endTime"
             placeholder="值班结束时间"
             type="datetime"
-            value-format="YYYY-MM-DDTHH:mm:ss"
+            value-format="YYYY-MM-DD HH:mm:ss"
           />
         </el-form-item>
       </el-form>
@@ -170,10 +175,25 @@
   </div>
 </template>
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { saveDuty } from '@/api/duty'
+import { saveDuty, queryDuty, deleteDuty, listGdPerson } from '@/api/duty'
 
+onMounted(() => {
+  listGdPerson().then(res => {
+    personnelOptions.value = res.map(item => {
+      return {
+        id: item.id,
+        label: item.personName,
+        value: item.personName
+      }
+    })
+  })
+  getDutyList()
+})
+
+const pageSize = ref(10)
+const currentPage = ref(1)
 /* 搜索条件 */
 const searchForm = reactive({
   timeRange: [],
@@ -200,13 +220,29 @@ const seatOptions = ref([
 const tableData = ref([
   {
     id: 1,
-    name: '张三',
-    position: '值班组长',
-    seat: '1号席位',
-    team: '一小队',
-    dutyTime: '2026-02-01'
+    personId: '张三',
+    deptId: '单位A',
+    dutyTeam: '一小队',
+    startTime: '2026-02-01 08:00:00',
+    endTime: '2026-02-01 18:00:00',
+    personNum: '5',
+    seatName: '1号席位',
+    seatPhone: '010-12345678',
+    leader: '李四',
+    contactPhone: '13800138000'
   }
 ])
+
+const getDutyList = () => {
+  queryDuty({
+    pageNum: currentPage.value,
+    pageSize: pageSize.value,
+  }).then(res => {
+    tableData.value = res.list
+    currentPage.value = res.currentPage
+    pageSize.value = res.pageSize
+  })
+}
 
 /* 搜索 */
 const handleSearch = () => {
@@ -290,10 +326,15 @@ const submitForm = () => {
     if (!valid) return
 
     if (formData.id) {
-      ElMessage.success('修改成功')
+      let params = { ...formData }
+      saveDuty(params).then(res => {
+          getDutyList()
+        ElMessage.success('修改成功')
+      })
     } else {
       let params = { ...formData }
       saveDuty(params).then(res => {
+        getDutyList()
         ElMessage.success('添加成功')
       })
       // formData.id = Date.now()
@@ -310,7 +351,9 @@ const deleteRow = (row) => {
   ElMessageBox.confirm('确认删除该值班人员吗？', '提示', {
     type: 'warning'
   }).then(() => {
-    tableData.value = tableData.value.filter(item => item.id !== row.id)
+    deleteDuty(row.id).then(res => {
+      getDutyList()
+    })
     ElMessage.success('删除成功')
   })
 }
