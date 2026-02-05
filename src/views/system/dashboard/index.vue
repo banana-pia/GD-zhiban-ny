@@ -5,18 +5,24 @@
     <el-form :inline="true" :model="searchForm" class="search-form">
       <el-form-item label="值班时间">
         <el-date-picker
+            v-model="searchForm.startTime"
+            placeholder="值班开始时间"
+            type="datetime"
+            value-format="YYYY-MM-DD HH:mm:ss"
+          />
+        <!-- <el-date-picker
           v-model="searchForm.timeRange"
           type="daterange"
           range-separator="至"
           start-placeholder="开始日期"
           end-placeholder="结束日期"
           value-format="YYYY-MM-DD"
-        />
+        /> -->
       </el-form-item>
 
       <el-form-item label="人员名称">
         <el-input
-          v-model="searchForm.name"
+          v-model="searchForm.personName"
           placeholder="请输入人员名称"
           clearable
         />
@@ -46,8 +52,8 @@
       stripe
       style="width: 100%"
     >
-      <el-table-column prop="personId" label="值班人员" />
-      <el-table-column prop="deptId" label="单位" />
+      <el-table-column prop="personName" label="值班人员" />
+      <el-table-column prop="deptName" label="单位" />
       <el-table-column prop="dutyTeam" label="值班分队" />
       <el-table-column prop="startTime" label="开始时间" />
       <el-table-column prop="endTime" label="结束时间" />
@@ -77,6 +83,18 @@
       </el-table-column>
     </el-table>
 
+    <el-pagination
+      v-model:current-page="currentPage"
+      v-model:page-size="pageSize"
+      :page-sizes="[10, 20, 50, 100]"
+      layout="total, sizes, prev, pager, next, jumper"
+      :total="total"
+      @size-change="handleSizeChange"
+      @current-change="handleCurrentChange"
+      style="margin-top: 16px; text-align: right;"
+    />
+
+
     <!-- 新增 / 编辑弹窗 -->
     <el-dialog
       :title="dialogTitle"
@@ -104,8 +122,16 @@
           </el-select>
         </el-form-item>
 
-        <el-form-item label="单位id" prop="deptId">
-          <el-input v-model="formData.deptId" />
+        <el-form-item label="单位" prop="deptId">
+          <!-- <el-input v-model="formData.deptId" /> -->
+           <el-tree-select
+            v-model="formData.deptId"
+            :data="deptOptions"
+            :props="{ value: 'deptId', label: 'deptName', children: 'children' }"
+            value-key="deptId"
+            placeholder="选择单位"
+            check-strictly
+           />
         </el-form-item>
 
         <el-form-item label="值班席位" prop="seatName">
@@ -178,14 +204,20 @@
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { saveDuty, queryDuty, deleteDuty, listGdPerson } from '@/api/duty'
+import { listDept } from "@/api/system/dept"
 
+const { proxy } = getCurrentInstance()
 onMounted(() => {
+  listDept().then(response => {
+    deptOptions.value = proxy.handleTree(response.data, "deptId")
+    deptOptions1.value = response.data
+  })
   listGdPerson().then(res => {
     personnelOptions.value = res.map(item => {
       return {
         id: item.id,
         label: item.personName,
-        value: item.personName
+        value: item.id
       }
     })
   })
@@ -194,10 +226,12 @@ onMounted(() => {
 
 const pageSize = ref(10)
 const currentPage = ref(1)
+const total = ref(0)
+
 /* 搜索条件 */
 const searchForm = reactive({
-  timeRange: [],
-  name: ''
+  startTime: '',
+  personName: ''
 })
 
 /* 人员选项 */
@@ -208,12 +242,15 @@ const personnelOptions = ref([
   { id: 4, label: '赵六', value: '赵六' }
 ])
 
+const deptOptions = ref([])
+const deptOptions1 = ref([])
+
 /* 席位选项 */
 const seatOptions = ref([
-  { id: 1, label: '1号席位', value: '1号席位' },
-  { id: 2, label: '2号席位', value: '2号席位' },
-  { id: 3, label: '3号席位', value: '3号席位' },
-  { id: 4, label: '4号席位', value: '4号席位' }
+  { id: 1, label: '值班指挥员', value: '值班指挥员' },
+  { id: 2, label: '指挥员助理', value: '指挥员助理' },
+  { id: 3, label: '主值班员', value: '主值班员' },
+  { id: 4, label: '辅助值班员', value: '辅助值班员' }
 ])
 
 /* 表格数据（后期换接口） */
@@ -233,26 +270,65 @@ const tableData = ref([
   }
 ])
 
+const handleSizeChange = (val) => {
+  pageSize.value = val
+  getDutyList()
+}
+const handleCurrentChange = (val) => {
+  currentPage.value = val
+  getDutyList()
+}
 const getDutyList = () => {
   queryDuty({
     pageNum: currentPage.value,
     pageSize: pageSize.value,
   }).then(res => {
-    tableData.value = res.list
-    currentPage.value = res.currentPage
+     tableData.value = res.list.map(item => {
+      // 根据 personId 查找对应的人员名称
+      const matchedPerson = personnelOptions.value.find(person => person.id === item.personId)
+      const matchedDept = deptOptions1.value.find(dept => dept.deptId === item.deptId)
+      // 返回新对象，包含原有字段和新增的 personName 字段
+      return {
+        ...item,
+        personName: matchedPerson ? matchedPerson.label : '未知人员' ,// 默认值处理
+        deptName: matchedDept ? matchedDept.deptName : '未知单位'
+      }
+    })
+    currentPage.value = res.pageNum
     pageSize.value = res.pageSize
+    total.value = res.total
   })
 }
 
 /* 搜索 */
 const handleSearch = () => {
   console.log('搜索条件', searchForm)
+  queryDuty({
+    pageNum: currentPage.value,
+    pageSize: pageSize.value,
+    ...searchForm
+  }).then(res => {
+     tableData.value = res.list.map(item => {
+      // 根据 personId 查找对应的人员名称
+      const matchedPerson = personnelOptions.value.find(person => person.id === item.personId)
+      const matchedDept = deptOptions1.value.find(dept => dept.deptId === item.deptId)
+      // 返回新对象，包含原有字段和新增的 personName 字段
+      return {
+        ...item,
+        personName: matchedPerson ? matchedPerson.label : '未知人员' ,// 默认值处理
+        deptName: matchedDept ? matchedDept.deptName : '未知单位'
+      }
+    })
+    currentPage.value = res.pageNum
+    pageSize.value = res.pageSize
+  })
   // 调接口
 }
 
 const resetSearch = () => {
-  searchForm.timeRange = []
-  searchForm.name = ''
+  searchForm.startTime = ''
+  searchForm.personName = ''
+  getDutyList()
 }
 
 /* 弹窗 */
@@ -312,9 +388,37 @@ const openAddDialog = () => {
   })
   dialogVisible.value = true
 }
+/**
+ * 判断当前时间是否超出可修改时间
+ * @param {string} startTime - 值班开始时间（格式：YYYY-MM-DD HH:mm:ss）
+ * @returns {boolean} - true 表示超出可修改时间，false 表示未超出
+ */
+const isBeyondEditableTime = (startTime) => {
+  if (!startTime) return false // 如果没有开始时间，默认允许修改
 
+  const start = new Date(startTime) // 值班开始时间
+  const now = new Date() // 当前时间
+
+  // 计算开始时间前一周的周五中午12点
+  const oneWeekBeforeStart = new Date(start)
+  oneWeekBeforeStart.setDate(oneWeekBeforeStart.getDate() - 7) // 减去7天
+
+  // 获取该周的周五
+  const dayOfWeek = oneWeekBeforeStart.getDay() // 0=周日, 1=周一, ..., 6=周六
+  const daysToFriday = dayOfWeek === 0 ? 5 : (5 - dayOfWeek) // 距离周五的天数
+  const fridayNoon = new Date(oneWeekBeforeStart)
+  fridayNoon.setDate(fridayNoon.getDate() + daysToFriday)
+  fridayNoon.setHours(12, 0, 0, 0) // 设置为中午12点
+
+  // 判断当前时间是否在周五中午12点之后
+  return now > fridayNoon
+}
 /* 编辑 */
 const editRow = (row) => {
+  // if (isBeyondEditableTime(row.startTime)) {
+  //   ElMessage.warning('超出可修改时间')
+  //   return
+  // }
   dialogTitle.value = '修改值班信息'
   Object.assign(formData, row)
   dialogVisible.value = true
