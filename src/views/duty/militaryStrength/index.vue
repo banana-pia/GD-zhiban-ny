@@ -2,19 +2,19 @@
 <template>
   <div class="strength-page">
     <div class="strength-left">
-      <div class="duty-Mili">
+      <div :class="{ 'duty-Mili': true, curTab: curTab == 1 }">
         <div></div>
         <div>
-          <div>值班兵力</div>
+          <div @click="changeTab(1)">值班兵力</div>
           <div>
             军分区各级共 0 人负责值班任务
           </div>
         </div>
       </div>
-      <div class="sport-Mili">
+      <div :class="{ 'sport-Mili': true, curTab: curTab == 2 }">
         <div></div>
         <div>
-          <div>行动兵力</div>
+          <div @click="changeTab(2)">行动兵力</div>
           <div>
             军分区各级共动用兵力 0 人
           </div>
@@ -28,7 +28,7 @@
 
           <div>兵力统计</div>
           <div>
-            <el-date-picker v-model="monthParams" value-format="YYYY-MM" type="month" placeholder="选择月份" />
+            <el-date-picker v-model="monthParams" value-format="YYYY-MM" @change="changeData" type="month" placeholder="选择月份" />
           </div>
         </div>
       </div>
@@ -41,12 +41,14 @@
 // -------------------- 依赖引入 --------------------
 import { ref, reactive, toRefs, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import * as echarts from 'echarts'
+import { dutyStatistics } from '@/api/duty/dutyman'
 
 
 // -------------------- 图表配置 --------------------
 const chartRef = ref(null)
 let chartInstance = null
 const monthParams = ref('')
+const curTab = ref(1)
 const option = {
   // backgroundColor: '#050f3a',
   // title: {
@@ -117,6 +119,32 @@ const option = {
     }
   ]
 }
+//<------------获取值班兵力和行动兵力数据------------>
+const getData = () => {
+  if (curTab.value == 1) {
+    dutyStatistics({ statDate: monthParams.value }).then(res => {
+      console.log('兵力统计数据：', res)
+      // 假设接口返回的数据格式为 { labels: [...], values: [...] }
+      if (res && res.labels && res.values) {
+        option.xAxis.data = res.labels
+        option.series[0].data = res.values
+        if (chartInstance) {
+          chartInstance.setOption(option)
+        }
+      }
+    })
+  }
+
+}
+//<------------切换tab------------>
+const changeTab = (tab) => {
+  curTab.value = tab
+  getData()
+}
+//<------------切换当前月------------>
+const changeData = () => {
+  getData()
+}
 //<------------获取当前月------------>
 const getCurrentMonth = () => {
   const date = new Date()
@@ -139,11 +167,13 @@ const resizeChart = () => {
 // -------------------- 生命周期 --------------------
 
 onMounted(() => {
-  nextTick(() => {
+  nextTick(async () => {
     chartInstance = echarts.init(chartRef.value)
     chartInstance.setOption(option)
+    await getData()
+    
   })
-  
+
   monthParams.value = getCurrentMonth()
 })
 
@@ -185,7 +215,22 @@ onBeforeUnmount(() => {
   }
 }
 
+.curTab {
+  >div:nth-child(2) {
+    >div:nth-child(1) {
+      transform: scale(1.1);
+      background: linear-gradient(180deg, #e4b92c 16.5%, #ffa228);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      color: transparent;
+    }
+  }
+
+}
+
 .duty-Mili {
+
   display: flex;
   justify-content: left;
   background-image: url('@/assets/images/bottom-bl.png');
@@ -204,6 +249,7 @@ onBeforeUnmount(() => {
 
   >div:nth-child(2) {
     >div:nth-child(1) {
+      cursor: pointer;
       font-family: Alibaba PuHuiTi 3;
       font-weight: 700;
       font-style: Bold;
@@ -251,6 +297,7 @@ onBeforeUnmount(() => {
 
   >div:nth-child(2) {
     >div:nth-child(1) {
+      cursor: pointer;
       font-family: Alibaba PuHuiTi 3;
       font-weight: 700;
       font-style: Bold;

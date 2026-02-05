@@ -3,9 +3,9 @@
     <el-dropdown trigger="click" @command="handleCommand">
       <span class="el-dropdown-link">
         <el-avatar :size="32" class="avatar">
-          {{ userName.slice(0, 1) }}
+          {{ userStore.nickName.slice(0, 1) }}
         </el-avatar>
-        <span class="username">{{ userName }}</span>
+        <span class="username">{{ userStore.nickName }}</span>
         <el-icon class="arrow"><ArrowDown /></el-icon>
       </span>
 
@@ -25,6 +25,9 @@
 <script setup>
 import { ArrowDown } from '@element-plus/icons-vue'
 import { useRouter } from 'vue-router'
+import { ElMessageBox } from 'element-plus'
+import useUserStore from '@/store/modules/user'
+const userStore = useUserStore()
 
 const router = useRouter()
 
@@ -38,8 +41,18 @@ const handleCommand = (command) => {
 
   if (command === 'logout') {
     // 清除登录信息
-    localStorage.clear()
-    router.push('/login')
+    // localStorage.clear()
+    // router.push('/login')
+    ElMessageBox.confirm('确定注销并退出系统吗？', '提示', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'warning'
+  }).then(() => {
+    userStore.logOut().then(() => {
+      location.href = '/'
+    })
+  }).catch(() => { })
+   
   }
 }
 </script>
