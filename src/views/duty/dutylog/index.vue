@@ -29,7 +29,7 @@
 
 <script setup>
 import { ref, reactive, toRefs, onMounted } from 'vue'
-import { queryJb, attch } from '@/axios/duty.js'
+// import { queryJb, attch } from '@/axios/duty.js'
 import ShowPdf from '../../../components/showpdf.vue'
 
 onMounted(()=>{
@@ -103,12 +103,11 @@ const getList = () => {
     danwei:'',
     xzqName: getHashParam('name')
   }
-  queryJb(obj).then((res) => {
-    rightList.value = res
-    curTab.value = 0
-    // iframeUrl.value = res.length || res[0].attaches.fileId
-    dbSelected(res.length && res[0].attaches[0].fileId,res.length && res[0].attaches[0].fileName)
-  })
+  // queryJb(obj).then((res) => {
+  //   rightList.value = res
+  //   curTab.value = 0
+  //   dbSelected(res.length && res[0].attaches[0].fileId,res.length && res[0].attaches[0].fileName)
+  // })
 }
 const changePdf = (val,index,name) => {
   curTab.value = index
@@ -117,11 +116,11 @@ const changePdf = (val,index,name) => {
 }
 const dbSelected = (val,name) => {
   fileName.value = name
-  attch({ fileId: val }).then((res) => {
-    iframeUrl.value = res
-  }).catch((err)=>{
-    iframeUrl.value = 0
-  })
+  // attch({ fileId: val }).then((res) => {
+  //   iframeUrl.value = res
+  // }).catch((err)=>{
+  //   iframeUrl.value = 0
+  // })
 
 }
 

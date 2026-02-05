@@ -61,6 +61,7 @@ export const constantRoutes = [
     path: '/',
     name:'layout',
     component: () => import('@/layout/header.vue'),
+    redirect: '/dutyMan',
     children: [
        {
         path: 'dutylog',
@@ -71,6 +72,16 @@ export const constantRoutes = [
         path: 'militaryStrength',
         name: 'militaryStrength',
         component: () => import('@/views/duty/militaryStrength/index.vue')
+      },
+      {
+        path: 'dutyMan',
+        name: 'dutyMan',
+        component: () => import('@/views/duty/dutyman/index.vue')
+      },
+      {
+        path: 'information',
+        name: 'information',
+        component: () => import('@/views/duty/Information/index.vue')
       },
     ]
 
