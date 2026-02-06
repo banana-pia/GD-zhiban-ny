@@ -67,6 +67,9 @@
         </template>
       </el-table-column>
     </el-table>
+    <el-dialog v-model="pdfDialogVisible" title="文件预览" width="80%" top="5vh">
+      <ShowPdf v-if="pdfDialogVisible" :iframe-url="currentPdfBlob" :name="currentFileName" />
+    </el-dialog>
    
   </div>
 </template>
@@ -74,6 +77,11 @@
 import { ref, reactive,onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { saveDutyLog, queryDutyLog, deleteDutyLog, downloadDutyLog } from '@/api/duty'
+import ShowPdf from '@/components/showpdf.vue'
+
+const pdfDialogVisible = ref(false)
+const currentPdfBlob = ref(null)
+const currentFileName = ref('')
 
 onMounted(() => {
   getFilesList() // 页面初始化时获取文件列表
@@ -193,8 +201,27 @@ const handleFileUpload = async (event) => {
 };
 
 const showDetails = async (row) => {
-  // ElMessage.info(`查看文件详情: ${row.fileName}`)
-  const response = await downloadDutyLog(row.filePath); 
+  try {
+    // 调用下载接口获取文件 Blob
+    // const response = await downloadDutyLog(row.filePath)
+
+    // const url = window.URL.createObjectURL(new Blob([response]));
+    // const link = document.createElement('a');
+    // link.href = url;
+    // link.setAttribute('download', row.fileName || 'download'); // 设置文件名
+    // document.body.appendChild(link);
+    // link.click();
+    // link.remove();
+    // window.URL.revokeObjectURL(url);
+
+    // 设置弹窗数据
+    currentPdfBlob.value = response
+    currentFileName.value = row.fileName
+    pdfDialogVisible.value = true // 打开弹窗
+  } catch (error) {
+    console.error('文件加载失败:', error)
+    ElMessage.error('文件加载失败')
+  }
 }
 /* 删除 */
 const deleteRow = (row) => {
