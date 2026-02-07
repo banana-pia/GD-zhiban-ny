@@ -16,7 +16,7 @@
 
       <el-form-item label="任务名称">
         <el-input
-          v-model="searchForm.rwmc"
+          v-model="searchForm.taskName"
           placeholder="请输入任务名称"
           clearable
         />
@@ -271,7 +271,7 @@ const deptOptions1 = ref([])
 /* 搜索条件 */
 const searchForm = reactive({
   taskTimeRange: [],
-  任务名称: ''
+  taskName: ''
 })
 
 /* 表格数据（后期换接口） */
@@ -302,6 +302,26 @@ const tableData = ref([
 const handleSearch = () => {
   console.log('搜索条件', searchForm)
   // 调接口
+  queryMilitia({
+    pageNum: currentPage.value,
+    pageSize: pageSize.value,
+    ...searchForm
+  }).then(res => {
+     tableData.value = res.list
+     tableData.value = res.list.map(item => {
+      // 根据 personId 查找对应的人员名称
+      // const matchedPerson = personnelOptions.value.find(person => person.id === item.personId)
+      const matchedDept = deptOptions1.value.find(dept => dept.deptId === item.deptId)
+      // 返回新对象，包含原有字段和新增的 personName 字段
+      return {
+        ...item,
+        // personName: matchedPerson ? matchedPerson.label : '未知人员' ,// 默认值处理
+        deptName: matchedDept ? matchedDept.deptName : '未知单位'
+      }
+    })
+    currentPage.value = res.pageNum
+    pageSize.value = res.pageSize
+  })
 }
 
 const resetSearch = () => {
