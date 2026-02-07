@@ -44,9 +44,9 @@
       stripe
       style="width: 100%"
     >
-      <el-table-column prop="addTime" label="上传时间" />
+      <el-table-column prop="uploadTime" label="上传时间" />
       <el-table-column prop="fileName" label="文件名称" />
-      <el-table-column prop="addPerson" label="上传人" />
+      <el-table-column prop="uploader" label="上传人" />
 
       <el-table-column label="操作" width="160" fixed="right">
         <template #default="{ row }">
@@ -67,63 +67,29 @@
         </template>
       </el-table-column>
     </el-table>
-
-    <!-- 新增 / 编辑弹窗 -->
-    <el-dialog
-      :title="dialogTitle"
-      v-model="dialogVisible"
-      width="500px"
-    >
-      <el-form
-        ref="formRef"
-        :model="formData"
-        :rules="rules"
-        label-width="100px"
-      >
-        <el-form-item label="值班人员" prop="name">
-          <el-input v-model="formData.name" />
-        </el-form-item>
-
-        <el-form-item label="职务" prop="position">
-          <el-input v-model="formData.position" />
-        </el-form-item>
-
-        <el-form-item label="值班席位" prop="seat">
-          <el-input v-model="formData.seat" />
-        </el-form-item>
-
-        <el-form-item label="执勤小队" prop="team">
-          <el-input v-model="formData.team" />
-        </el-form-item>
-
-        <el-form-item label="值班时间" prop="dutyTime">
-          <el-date-picker
-            v-model="formData.dutyTime"
-            type="date"
-            value-format="YYYY-MM-DD"
-          />
-        </el-form-item>
-      </el-form>
-
-      <template #footer>
-        <el-button @click="dialogVisible = false">
-          取消
-        </el-button>
-        <el-button type="primary" @click="submitForm">
-          确定
-        </el-button>
-      </template>
+    <el-dialog v-model="pdfDialogVisible" title="文件预览" width="80%" top="5vh">
+      <ShowPdf v-if="pdfDialogVisible" :iframe-url="currentPdfBlob" :name="currentFileName" />
     </el-dialog>
-
+   
   </div>
 </template>
 <script setup>
 import { ref, reactive,onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { saveDutyLog, queryDutyLog, deleteDutyLog, downloadDutyLog } from '@/api/duty'
+import ShowPdf from '@/components/showpdf.vue'
+
+const pdfDialogVisible = ref(false)
+const currentPdfBlob = ref(null)
+const currentFileName = ref('')
 
 onMounted(() => {
-  // getFilesList() // 页面初始化时获取文件列表
+  getFilesList() // 页面初始化时获取文件列表
 })
+
+const pageSize = ref(10)
+const currentPage = ref(1)
+const total = ref(0)
 
 /* 搜索条件 */
 const searchForm = reactive({
@@ -134,11 +100,23 @@ const searchForm = reactive({
 /* 表格数据（后期换接口） */
 const tableData = ref([
   {
-    addTime: '2026-02-01',
-    addPerson: '值班组长',
+    uploadTime: '2026-02-01',
+    uploader: '值班组长',
     fileName: '1号席位',
   }
 ])
+
+const getFilesList = () => {
+  queryDutyLog({
+    pageNum: currentPage.value,
+    pageSize: pageSize.value,
+  }).then(res => {
+    tableData.value = res.list
+    currentPage.value = res.pageNum
+    pageSize.value = res.pageSize
+    total.value = res.total
+  })
+}
 
 /* 搜索 */
 const handleSearch = async () => {
@@ -168,20 +146,7 @@ const resetSearch = () => {
   getFilesList()
 }
 
-const getFilesList = async () => {
-  try {
-    const response = await fetch('/api/files/list') // 根据实际API地址调整
-    if (response.ok) {
-      const data = await response.json()
-      tableData.value = data // 根据实际API返回结构调整
-    } else {
-      throw new Error('获取文件列表失败')
-    }
-  } catch (error) {
-    console.error('获取文件列表错误:', error)
-    ElMessage.error('获取文件列表失败')
-  }
-}
+
 
 const addDuty = () => {
   // 创建隐藏的文件输入框
@@ -195,63 +160,77 @@ const addDuty = () => {
 
 const handleFileUpload = async (event) => {
   const files = Array.from(event.target.files);
-  
+
   if (files.length === 0) return;
 
   for (const file of files) {
     try {
-      // 创建 FormData 对象
       const formData = new FormData();
       formData.append('file', file);
-      
-      // 添加记录信息到 FormData
-      const recordInfo = {
-        fileName: file.name,
-        addTime: new Date().toISOString().split('T')[0],
-        addPerson: '当前用户' // 实际应用中应从用户信息获取
-      };
-      formData.append('recordInfo', JSON.stringify(recordInfo));
+      formData.append('fileName', file.name);
+      console.log('上传文件', formData);
+      const now = new Date();
+      const uploadTime = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+      formData.append('uploadTime', uploadTime);
+      // const uploadTime = new Date().toISOString().replace(/\.(\d{3})Z$/, ''); ; // 输出: "2026-02-05T14:00:34.123Z"
+      // formData.append('uploadTime', uploadTime);
+      formData.append('uploader', '当前用户');
+      console.log('上传参数', formData);
+      debugger
 
-      // 执行文件上传请求（需要根据实际后端API调整）
-      const response = await fetch('/api/file/upload', {
-        method: 'POST',
-        body: formData,
-        // 如果需要身份验证，可以添加 headers
-        // headers: {
-        //   // Authorization: `Bearer ${token}`
-        // }
-      });
+      // 调用 API
+      const response = await saveDutyLog(formData).then(res => { 
+        getFilesList()
+});
 
-      if (response.ok) {
-        const result = await response.json();
-        
-        // 添加上传记录到表格数据
-        tableData.value.unshift({
-          addTime: recordInfo.addTime,
-          fileName: file.name,
-          addPerson: recordInfo.addPerson
-        });
-
-        ElMessage.success(`文件 "${file.name}" 上传成功`);
-      } else {
-        throw new Error(`上传失败: ${response.statusText}`);
-      }
+      // if (response.success) {
+      //   tableData.value.unshift({
+      //     addTime: formData.get('uploadTime'),
+      //     fileName: formData.get('fileName'),
+      //     addPerson: formData.get('uploader')
+      //   });
+      //   ElMessage.success(`文件 "${file.name}" 上传成功`);
+      // } else {
+      //   ElMessage.error(`上传失败: ${response.message}`);
+      // }
     } catch (error) {
-      console.error('文件上传错误:', error);
-      ElMessage.error(`文件 "${file.name}" 上传失败: ${error.message}`);
+      console.error('上传错误:', error);
+      ElMessage.error(`文件 "${file.name}" 上传失败`);
     }
   }
 };
 
-const showDetails = (row) => {
-  ElMessage.info(`查看文件详情: ${row.fileName}`)
+const showDetails = async (row) => {
+  try {
+    // 调用下载接口获取文件 Blob
+    // const response = await downloadDutyLog(row.filePath)
+
+    // const url = window.URL.createObjectURL(new Blob([response]));
+    // const link = document.createElement('a');
+    // link.href = url;
+    // link.setAttribute('download', row.fileName || 'download'); // 设置文件名
+    // document.body.appendChild(link);
+    // link.click();
+    // link.remove();
+    // window.URL.revokeObjectURL(url);
+
+    // 设置弹窗数据
+    currentPdfBlob.value = response
+    currentFileName.value = row.fileName
+    pdfDialogVisible.value = true // 打开弹窗
+  } catch (error) {
+    console.error('文件加载失败:', error)
+    ElMessage.error('文件加载失败')
+  }
 }
 /* 删除 */
 const deleteRow = (row) => {
   ElMessageBox.confirm('确认删除该值班信息表吗？', '提示', {
     type: 'warning'
   }).then(() => {
-    tableData.value = tableData.value.filter(item => item.id !== row.id)
+    deleteDutyLog(row.id).then(res => {
+      getFilesList()
+    })
     ElMessage.success('删除成功')
   })
 }
