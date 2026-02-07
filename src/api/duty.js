@@ -140,7 +140,7 @@ export function listPost(query) {
 
 export const queryApprove = (data) => {
   return request({
-    url: '/duty/leaderAudit',
+    url: '/duty/auditList',
     method: 'post',
     data
   })

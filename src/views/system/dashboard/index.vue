@@ -248,9 +248,10 @@ const deptOptions1 = ref([])
 /* 席位选项 */
 const seatOptions = ref([
   { id: 1, label: '值班领导', value: '值班领导' },
-  { id: 2, label: '领导助理', value: '领导助理' },
+  { id: 2, label: '值班领导助理', value: '值班领导助理' },
+  { id: 3, label: '值班员', value: '值班员' },
   { id: 3, label: '主值班员', value: '主值班员' },
-  { id: 4, label: '辅助值班员', value: '辅助值班员' }
+  { id: 4, label: '副值班员', value: '副值班员' }
 ])
 
 /* 表格数据（后期换接口） */
@@ -354,7 +355,7 @@ const formData = reactive({
 /* 校验规则 */
 const rules = {
   personId: [{ required: true, message: '请选择值班人员', trigger: 'change' }],
-  deptId: [{ required: true, message: '请输入单位ID', trigger: 'blur' }],
+  deptId: [{ required: true, message: '请输入单位', trigger: 'blur' }],
   seatName: [{ required: true, message: '请选择值班席位', trigger: 'change' }],
   seatPhone: [{ required: true, message: '请输入席位电话', trigger: 'blur' }],
   leader: [{ required: true, message: '请输入负责人', trigger: 'blur' }],
@@ -416,34 +417,34 @@ const isBeyondEditableTime = (startTime) => {
 }
 /* 编辑 */
 const editRow = (row) => {
-  if (isBeyondEditableTime(row.startTime)) {
-    ElMessageBox.confirm(
-      '超出可修改时间，是否需要提交审核？',
-      '提示',
-      {
-        confirmButtonText: '确认',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }
-    )
-      .then(() => {
-        dialogTitle.value = '修改值班信息'
-  Object.assign(formData, row)
-  dialogVisible.value = true
-        // 用户点击“确认”按钮后的逻辑
-        // ElMessage.info('已提交审核') 
-        // 这里可以调用提交审核的接口或其他逻辑
-        
-      })
-      .catch(() => {
-        // 用户点击“取消”按钮后的逻辑
-        ElMessage.info('已取消操作')
-      })
-    return
-  }
-  // dialogTitle.value = '修改值班信息'
+  // if (isBeyondEditableTime(row.startTime)) {
+  //   ElMessageBox.confirm(
+  //     '超出可修改时间，是否需要提交审核？',
+  //     '提示',
+  //     {
+  //       confirmButtonText: '确认',
+  //       cancelButtonText: '取消',
+  //       type: 'warning'
+  //     }
+  //   )
+  //     .then(() => {
+  //       dialogTitle.value = '修改值班信息'
   // Object.assign(formData, row)
   // dialogVisible.value = true
+  //       // 用户点击“确认”按钮后的逻辑
+  //       // ElMessage.info('已提交审核') 
+  //       // 这里可以调用提交审核的接口或其他逻辑
+        
+  //     })
+  //     .catch(() => {
+  //       // 用户点击“取消”按钮后的逻辑
+  //       ElMessage.info('已取消操作')
+  //     })
+  //   return
+  // }
+  dialogTitle.value = '修改值班信息'
+  Object.assign(formData, row)
+  dialogVisible.value = true
 }
 
 /* 提交 */

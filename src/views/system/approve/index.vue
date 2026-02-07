@@ -39,11 +39,11 @@
     </el-form>
 
     <!-- 操作栏 -->
-    <div class="toolbar">
+    <!-- <div class="toolbar">
       <el-button type="primary" @click="openAddDialog">
         新增值班人员
       </el-button>
-    </div>
+    </div> -->
 
     <!-- 排班表格 -->
     <el-table
@@ -106,19 +106,19 @@ import { listDept } from "@/api/system/dept"
 
 const { proxy } = getCurrentInstance()
 onMounted(() => {
-  listDept().then(response => {
-    deptOptions.value = proxy.handleTree(response.data, "deptId")
-    deptOptions1.value = response.data
-  })
-  listGdPerson().then(res => {
-    personnelOptions.value = res.map(item => {
-      return {
-        id: item.id,
-        label: item.personName,
-        value: item.id
-      }
-    })
-  })
+  // listDept().then(response => {
+  //   deptOptions.value = proxy.handleTree(response.data, "deptId")
+  //   deptOptions1.value = response.data
+  // })
+  // listGdPerson().then(res => {
+  //   personnelOptions.value = res.map(item => {
+  //     return {
+  //       id: item.id,
+  //       label: item.personName,
+  //       value: item.id
+  //     }
+  //   })
+  // })
    getApproveList()
 })
 
@@ -181,18 +181,7 @@ const getApproveList = () => {
     pageNum: currentPage.value,
     pageSize: pageSize.value,
   }).then(res => {
-     tableData.value = res.list.map(item => {
-      // 根据 personId 查找对应的人员名称
-      const matchedPerson = personnelOptions.value.find(person => person.id === item.id)
-      debugger
-      const matchedDept = deptOptions1.value.find(dept => dept.deptId === item.deptId)
-      // 返回新对象，包含原有字段和新增的 personName 字段
-      return {
-        ...item,
-        personName: matchedPerson ? matchedPerson.label : '未知人员' ,// 默认值处理
-        deptName: matchedDept ? matchedDept.deptName : '未知单位'
-      }
-    })
+     tableData.value = res.list
     currentPage.value = res.pageNum
     pageSize.value = res.pageSize
     total.value = res.total
