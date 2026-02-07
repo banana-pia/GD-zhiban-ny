@@ -331,7 +331,7 @@ const resetSearch = () => {
 
 /* 弹窗 */
 const dialogVisible = ref(false)
-const dialogTitle = ref('新增值班人员')
+const dialogTitle = ref('新增值班任务')
 
 const formRef = ref(null)
 const formData = reactive({
