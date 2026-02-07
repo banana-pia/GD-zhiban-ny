@@ -59,8 +59,8 @@ const getList = (week) => {
   dutyList(params).then(res => {
     console.log('查询结果：', res)
     const flat = flattenData(res)
-const merged = mergeDutyData(flat)
-tableData.value = calcDeptRowSpan(merged)
+    const merged = mergeDutyData(flat)
+    tableData.value = calcDeptRowSpan(merged)
   })
 }
 //数据扁平化

@@ -213,11 +213,12 @@ const showDetails = async (row) => {
     // link.click();
     // link.remove();
     // window.URL.revokeObjectURL(url);
+    const response = await downloadDutyLog(row.filePath)
 
     // 设置弹窗数据
-    currentPdfBlob.value = response
-    currentFileName.value = row.fileName
-    pdfDialogVisible.value = true // 打开弹窗
+    // currentPdfBlob.value = response
+    // currentFileName.value = row.fileName
+    // pdfDialogVisible.value = true // 打开弹窗
   } catch (error) {
     console.error('文件加载失败:', error)
     ElMessage.error('文件加载失败')

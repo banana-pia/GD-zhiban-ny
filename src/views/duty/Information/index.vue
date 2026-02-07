@@ -1,4 +1,4 @@
-<!-- page-name: 值班信息,author: huzhi,date: 2026.2.4, description:,-->
+<!-- page-name: 值班人员,author: huzhi,date: 2024.9.15, description:,-->
 <template>
   <div class="duty-con">
     <div>
@@ -10,12 +10,13 @@
       </p>
     </div>
     <div>
-      <el-table class="web-table" :data="tableData" ref="tableRef" :span-method="objectSpanMethod" border
+      <el-table class="web-table" :data="tableData" ref="tableRef" :span-method="spanMethod" border
         style="width: 100%;height: 100% ">
         <el-table-column v-for="value in columns" :key="value.prop" :prop="value.prop" :label="value.label"
           :width="value.width">
-          <template #default="{ row }" v-if="value.soltName==='dutyTime'">
-            <div>{{ row.start_time }}<br/> ~ <br/>{{ row.end_time }}</div>
+          <template #default="{ row }" v-if="value.soltName === 'dutyTime'">
+            <div v-if="row.start_time != row.end_time">{{ row.start_time }}<br /> ~ <br />{{ row.end_time }}</div>
+            <div v-else>{{ row.start_time }}</div>
           </template>
         </el-table-column>
       </el-table>
@@ -45,21 +46,239 @@ const getList = (week) => {
     params = {
       endDate: sunday,
       startDate: monday,
-      subquery: false
+      subquery: true
     }
-  }else{
+  } else {
     params = {
       endDate: curDate.value,
       startDate: curDate.value,
-      subquery: false
+      subquery: true
     }
   }
 
   dutyList(params).then(res => {
     console.log('查询结果：', res)
-    tableData.value = res || []
+    const list = flattenDatalist(res)
+    // const flat = flattenData(list)
+    debugger
+    const merged = mergeDutyByContinuousTime(list)
+    tableData.value = calcDeptRowSpan(merged)
   })
 }
+//数据分解
+function flattenDatalist(source) {
+  let arr = []
+  source.map((item) => {
+    item.children.forEach((value) => {
+      Object.keys(value).forEach((val) => {
+        if (val != 'children') {
+          // value[val].children = value.children
+          
+          arr.push(...value[val])
+        }
+      })
+    })
+  })
+  return arr
+}
+//数据扁平化
+function flattenData(source) {
+  return source.flatMap(item => {
+    const deptName = Object.keys(item)[0]
+    return item[deptName].map(row => ({
+      ...row,
+      dept_name: deptName
+    }))
+  })
+}
+//判断合并时间
+function isContinuous(prevEnd, curStart) {
+  const prev = new Date(prevEnd)
+  const cur = new Date(curStart)
+
+  // 允许：同一天 或 相差 1 天
+  const diff =
+    (cur.getTime() - prev.getTime()) / (1000 * 60 * 60 * 24)
+
+  return diff === 0 || diff === 1
+}
+//合并人员时间
+function mergeDutyByContinuousTime(list) {
+  const groupMap = new Map()
+
+  // ① 先按 person + seat 分组
+  list.forEach(item => {
+    const key = `${item.person_id}_${item.seat_name}`
+    if (!groupMap.has(key)) {
+      groupMap.set(key, [])
+    }
+    groupMap.get(key).push(item)
+  })
+
+  const result = []
+
+  // ② 每一组内部判断连续性
+  groupMap.forEach(group => {
+    // 按 start_time 排序
+    group.sort((a, b) =>
+      new Date(a.start_time) - new Date(b.start_time)
+    )
+
+    let current = null
+
+    group.forEach(item => {
+      if (!current) {
+        // 第一条
+        current = {
+          ...item,
+          _start: item.start_time,
+          _end: item.end_time,
+          _rowSpan: 1,
+          _isFirst: true
+        }
+        result.push(current)
+      } else if (isContinuous(current._end, item.start_time)) {
+        // 连续 → 合并
+        current._end =
+          current._end > item.end_time
+            ? current._end
+            : item.end_time
+        current._rowSpan++
+      } else {
+        // ❌ 不连续 → 新的一段
+        current = {
+          ...item,
+          _start: item.start_time,
+          _end: item.end_time,
+          _rowSpan: 1,
+          _isFirst: true
+        }
+        result.push(current)
+      }
+    })
+  })
+
+  // ③ 补 duty_time
+  result.forEach(row => {
+    row.duty_time = `${row._start} ~ ${row._end}`
+  })
+
+  return result
+}
+
+// function mergeDutyData(list) {
+//   const map = new Map()
+//   const result = []
+
+//   list.forEach(item => {
+//     const key = `${item.person_id}_${item.seat_name}`
+
+//     if (!map.has(key)) {
+//       const row = {
+//         ...item,
+//         _rowSpan: 1,
+//         _isFirst: true,
+//         _start: item.start_time,
+//         _end: item.end_time
+//       }
+//       map.set(key, row)
+//       result.push(row)
+//     } else {
+//       const target = map.get(key)
+//       target._rowSpan++
+//       target._isFirst = true
+
+//       target._start =
+//         target._start < item.start_time ? target._start : item.start_time
+//       target._end =
+//         target._end > item.end_time ? target._end : item.end_time
+
+//       // 👇 关键：后续行也要进表格，但标记为非首行
+//       result.push({
+//         ...item,
+//         _isFirst: false,
+//         _rowSpan: 0
+//       })
+//     }
+//   })
+
+//   // 给首行补 duty_time
+//   result.forEach(row => {
+//     if (row._isFirst) {
+//       row.duty_time = `${row._start} ~ ${row._end}`
+//     }
+//   })
+
+//   return result
+// }
+//计算部门合并行数
+function calcDeptRowSpan(list) {
+  let i = 0
+
+  while (i < list.length) {
+    let count = 1
+    const currentDept = list[i].dept_name
+
+    for (let j = i + 1; j < list.length; j++) {
+      if (list[j].dept_name === currentDept) {
+        count++
+      } else {
+        break
+      }
+    }
+
+    // 第一行
+    list[i]._deptRowSpan = count
+    list[i]._deptFirst = true
+
+    // 后续行
+    for (let k = i + 1; k < i + count; k++) {
+      list[k]._deptRowSpan = 0
+      list[k]._deptFirst = false
+    }
+
+    i += count
+  }
+
+  return list
+}
+
+
+//合并规则
+function spanMethod({ row, column }) {
+  // ① 部门列（第一列）
+  if (column.property === 'dept_name') {
+    return {
+      rowspan: row._deptRowSpan ?? 0,
+      colspan: row._deptRowSpan ? 1 : 0
+    }
+  }
+
+  // ② 人 + 席位相关列
+  const PERSON_COLS = [
+    'seat_name',
+    'person_name',
+    'person_type',
+    'duty',
+    'seat_phone',
+    'duty_time',
+    'duty_team',
+    'leader',
+    'contact_phone'
+  ]
+
+  if (PERSON_COLS.includes(column.property)) {
+    return {
+      rowspan: row._rowSpan ?? 0,
+      colspan: row._rowSpan ? 1 : 0
+    }
+  }
+
+  // ③ 其他列：永远不合并
+  return { rowspan: 1, colspan: 1 }
+}
+
+
 //获取周值班
 const getWeekDuty = () => {
   getList(true)
@@ -80,7 +299,7 @@ const columns = [
   { prop: 'person_type', label: '类别' },
   { prop: 'duty', label: '职务' },
   { prop: 'seat_phone', label: '席位电话' },
-  { prop: 'start_time', label: '值班时间' ,soltName:'dutyTime'},
+  { prop: 'start_time', label: '值班时间', soltName: 'dutyTime' },
   { prop: 'duty_team', label: '值班分队' },
   { prop: 'person_num', label: '人数' },
   { prop: 'leader', label: '负责人' },
@@ -227,5 +446,12 @@ onMounted(() => {
   >div:nth-child(2) {
     height: calc(100% - 86px);
   }
+  
 }
+.duty-bottom{
+  :deep(.el-input__wrapper){
+    background: #091A69;
+    box-shadow: 0 0 0 1px #354262 inset;
+  }
+} 
 </style>
