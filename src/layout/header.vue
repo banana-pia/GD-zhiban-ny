@@ -9,6 +9,7 @@
           <div>{{ curTime }}</div>
           <div>{{ title }}</div>
           <div>
+            <!-- <p class="">国防动员领导管理系统</p> -->
             <UserDropdown />
           </div>
         </div>
@@ -36,28 +37,31 @@ import UserDropdown from './components/UserDropdown.vue'
 const router = useRouter()
 const route = useRoute()
 
-const title = ref('国防动员领导管理系统-值班工作态势')
+// const title = ref('国防动员领导管理系统-值班工作态势')
+const title = ref('值班工作态势')
+
 const curTime = ref('')
 let timeCpt = null  //计时器
 const menuList = ref([])
 //<!-- 值班工作态势菜单模块 -->
 const sheng = [
-  {label:'省军区值班人员',value:'1',route:'/dutyMan'},
+  {label:'省军区值班信息',value:'1',route:'/dutyMan'},
+  {label:'军分区值班信息',value:'6',route:'/information'},
+
   {label:'兵力情况',value:'2',route:'/militaryStrength'},
   // {label:'省军区首长活动',value:'3'},
   // {label:'本周主要工作',value:'4'},
   // {label:'应急突发情况处置',value:'5'},
-  {label:'军分区值班信息',value:'6',route:'/information'},
   {label:'值班简报',value:'7',route:'/dutylog'},
 
 ]
 const shi = [
-  {label:'值班人员',value:'1',route:'/dutyMan'},
+  {label:'值班信息',value:'1',route:'/dutyMan'},
+  {label:'人武部值班信息',value:'6',route:'/information'},
   {label:'兵力情况',value:'2',route:'/militaryStrength'},
   // {label:'首长活动',value:'3'},
   // {label:'本周主要工作',value:'4'},
   // {label:'应急突发情况处置',value:'5'},
-  {label:'人武部值班信息',value:'6',route:'/information'},
   {label:'值班简报',value:'7',route:'/dutylog'},
 
 ]
@@ -161,7 +165,8 @@ watch(
   }
 
   >div:nth-child(2) {
-    width: 2456px;
+    // width: 2456px;
+    width: 1930px;
     height: 80px;
     background: url('@/assets/images/nav_bg4.png') no-repeat;
     background-size: 2456px 80px;
@@ -174,7 +179,7 @@ watch(
       text-align: center;
       // text-shadow: 0px 3px 4px rgba(0, 0, 0, 0.25), 0px 0px 20px #0090FF;
       font-family: "Alibaba PuHuiTi 3.0";
-      font-size: 38px;
+      font-size: 42px;
       font-style: normal;
       font-weight: 800;
       letter-spacing: 3.8px;
@@ -211,6 +216,7 @@ watch(
   justify-content: center;
   align-items: center;
   min-width: 1500px;
+  padding-top: 20px;
   >div {
     padding: 20px;
     width: 168px;

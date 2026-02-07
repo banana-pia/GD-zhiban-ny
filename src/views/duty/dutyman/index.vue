@@ -10,12 +10,13 @@
       </p>
     </div>
     <div>
-      <el-table class="web-table" :data="tableData" ref="tableRef" :span-method="objectSpanMethod" border
+      <el-table class="web-table" :data="tableData" ref="tableRef" :span-method="spanMethod" border
         style="width: 100%;height: 100% ">
         <el-table-column v-for="value in columns" :key="value.prop" :prop="value.prop" :label="value.label"
           :width="value.width">
-          <template #default="{ row }" v-if="value.soltName==='dutyTime'">
-            <div>{{ row.start_time }}<br/> ~ <br/>{{ row.end_time }}</div>
+          <template #default="{ row }" v-if="value.soltName === 'dutyTime'">
+            <div v-if="row.start_time != row.end_time">{{ row.start_time }}<br /> ~ <br />{{ row.end_time }}</div>
+            <div v-else>{{ row.start_time }}</div>
           </template>
         </el-table-column>
       </el-table>
@@ -47,7 +48,7 @@ const getList = (week) => {
       startDate: monday,
       subquery: false
     }
-  }else{
+  } else {
     params = {
       endDate: curDate.value,
       startDate: curDate.value,
@@ -57,9 +58,135 @@ const getList = (week) => {
 
   dutyList(params).then(res => {
     console.log('查询结果：', res)
-    tableData.value = res || []
+    const flat = flattenData(res)
+const merged = mergeDutyData(flat)
+tableData.value = calcDeptRowSpan(merged)
   })
 }
+//数据扁平化
+function flattenData(source) {
+  return source.flatMap(item => {
+    const deptName = Object.keys(item)[0]
+    return item[deptName].map(row => ({
+      ...row,
+      dept_name: deptName
+    }))
+  })
+}
+//合并人员时间
+function mergeDutyData(list) {
+  const map = new Map()
+  const result = []
+
+  list.forEach(item => {
+    const key = `${item.person_id}_${item.seat_name}`
+
+    if (!map.has(key)) {
+      const row = {
+        ...item,
+        _rowSpan: 1,
+        _isFirst: true,
+        _start: item.start_time,
+        _end: item.end_time
+      }
+      map.set(key, row)
+      result.push(row)
+    } else {
+      const target = map.get(key)
+      target._rowSpan++
+      target._isFirst = true
+
+      target._start =
+        target._start < item.start_time ? target._start : item.start_time
+      target._end =
+        target._end > item.end_time ? target._end : item.end_time
+
+      // 👇 关键：后续行也要进表格，但标记为非首行
+      result.push({
+        ...item,
+        _isFirst: false,
+        _rowSpan: 0
+      })
+    }
+  })
+
+  // 给首行补 duty_time
+  result.forEach(row => {
+    if (row._isFirst) {
+      row.duty_time = `${row._start} ~ ${row._end}`
+    }
+  })
+
+  return result
+}
+//计算部门合并行数
+function calcDeptRowSpan(list) {
+  let i = 0
+
+  while (i < list.length) {
+    let count = 1
+    const currentDept = list[i].dept_name
+
+    for (let j = i + 1; j < list.length; j++) {
+      if (list[j].dept_name === currentDept) {
+        count++
+      } else {
+        break
+      }
+    }
+
+    // 第一行
+    list[i]._deptRowSpan = count
+    list[i]._deptFirst = true
+
+    // 后续行
+    for (let k = i + 1; k < i + count; k++) {
+      list[k]._deptRowSpan = 0
+      list[k]._deptFirst = false
+    }
+
+    i += count
+  }
+
+  return list
+}
+
+
+//合并规则
+function spanMethod({ row, column }) {
+  // ① 部门列：用部门的合并规则
+  if (column.property === 'dept_name') {
+    if (row._deptFirst) {
+      return { rowspan: row._deptRowSpan, colspan: 1 }
+    }
+    return { rowspan: 0, colspan: 0 }
+  }
+
+  // ② 其他需要“人+席位”合并的列
+  const PERSON_MERGE_COLS = [
+    'seat_name',
+    'person_name',
+    'person_type',
+    'duty',
+    'seat_phone',
+    'duty_time',
+    'duty_team',
+    'leader',
+    'contact_phone'
+  ]
+
+  if (PERSON_MERGE_COLS.includes(column.property)) {
+    if (row._isFirst) {
+      return { rowspan: row._rowSpan, colspan: 1 }
+    }
+    return { rowspan: 0, colspan: 0 }
+  }
+
+  // ③ 其他列不合并
+  return { rowspan: 1, colspan: 1 }
+}
+
+
 //获取周值班
 const getWeekDuty = () => {
   getList(true)
@@ -80,7 +207,7 @@ const columns = [
   { prop: 'person_type', label: '类别' },
   { prop: 'duty', label: '职务' },
   { prop: 'seat_phone', label: '席位电话' },
-  { prop: 'start_time', label: '值班时间' ,soltName:'dutyTime'},
+  { prop: 'start_time', label: '值班时间', soltName: 'dutyTime' },
   { prop: 'duty_team', label: '值班分队' },
   { prop: 'person_num', label: '人数' },
   { prop: 'leader', label: '负责人' },

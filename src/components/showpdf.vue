@@ -8,12 +8,12 @@
         <VuePdfEmbed :page="currentPage"  @loaded="onPdfLoaded" text-layer :source="pdfSource"></VuePdfEmbed>
       </div>
     </div>
-    <div class="pdf-controls" v-if="pdfSource">
+    <!-- <div class="pdf-controls" v-if="pdfSource">
       <button @click="goToPrevPage" :disabled="currentPage <= 1">上一页</button>
       <span>{{ currentPage }} / {{ totalPages }}</span>
       <button @click="goToNextPage" :disabled="currentPage >= totalPages">下一页</button>
       <button @click="downloadPdf">下载PDF</button>
-    </div>
+    </div> -->
 
     <!-- <iframe  :src="pdfSource" frameborder="0"></iframe> -->
   </div>

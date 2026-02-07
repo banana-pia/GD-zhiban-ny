@@ -7,7 +7,8 @@
         <div>
           <div @click="changeTab(1)">值班兵力</div>
           <div>
-            军分区各级共 0 人负责值班任务
+            <!-- 军分区各级共 0 人负责值班任务 -->
+            全区值班人员现役X人、文职Xx人、民兵XX人。
           </div>
         </div>
       </div>
@@ -16,14 +17,14 @@
         <div>
           <div @click="changeTab(2)">行动兵力</div>
           <div>
-            军分区各级共动用兵力 0 人
+            全区各级共动用兵力 0 人
           </div>
         </div>
       </div>
     </div>
     <div class="strength-right">
       <div>
-        <p>各军分区、全省军区值班人员现役X人、文职Xx人、民兵XX人。</p>
+        <!-- <p></p> -->
         <div class="strength-title">
 
           <div>兵力统计</div>
@@ -81,7 +82,7 @@ const option = {
         color: '#ffffff'
       }
     },
-    data: ['苏州军分区', '常州军分区', '扬州军分区', '宿迁军分区', '徐州军分区', '盐城军分区', '南京警备区']
+    data: ['南昌警备区', '赣州军分区', '吉安军分区', '九江军分区', '上饶军分区', '抚州军分区', '宜春军分区','萍乡军分区','景德镇军分区','鹰潭军分区','新余军分区']
   },
   yAxis: {
     type: 'value',
@@ -108,7 +109,7 @@ const option = {
     {
       type: 'bar',
       barWidth: 16,
-      data: [0.32, 0.45, 0.28, 0.36, 0.52, 0.41, 0.63],
+      data: [0.32, 0.45, 0.28, 0.36, 0.52, 0.41, 0.63,0.56,0.67,0.76,0.67],
       itemStyle: {
         borderRadius: [8, 8, 0, 0],
         color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [
@@ -238,6 +239,7 @@ onBeforeUnmount(() => {
   background-repeat: no-repeat;
   margin-bottom: 40px;
   padding: 20px;
+  margin-top: 100px;
 
   >div:nth-child(1) {
     width: 160px;
@@ -286,6 +288,7 @@ onBeforeUnmount(() => {
   background-size: 100% 100%;
   background-repeat: no-repeat;
   padding: 20px;
+  margin-top: 100px;
 
   >div:nth-child(1) {
     width: 160px;
