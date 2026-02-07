@@ -284,18 +284,19 @@ const getDutyList = () => {
     pageNum: currentPage.value,
     pageSize: pageSize.value,
   }).then(res => {
-     tableData.value = res.list.map(item => {
-      // 根据 personId 查找对应的人员名称
-      const matchedPerson = personnelOptions.value.find(person => person.id === item.id)
-      debugger
-      const matchedDept = deptOptions1.value.find(dept => dept.deptId === item.deptId)
-      // 返回新对象，包含原有字段和新增的 personName 字段
-      return {
-        ...item,
-        personName: matchedPerson ? matchedPerson.label : '未知人员' ,// 默认值处理
-        deptName: matchedDept ? matchedDept.deptName : '未知单位'
-      }
-    })
+    //  tableData.value = res.list.map(item => {
+    //   // 根据 personId 查找对应的人员名称
+    //   const matchedPerson = personnelOptions.value.find(person => person.id === item.id)
+    //   debugger
+    //   const matchedDept = deptOptions1.value.find(dept => dept.deptId === item.deptId)
+    //   // 返回新对象，包含原有字段和新增的 personName 字段
+    //   return {
+    //     ...item,
+    //     personName: matchedPerson ? matchedPerson.label : '未知人员' ,// 默认值处理
+    //     deptName: matchedDept ? matchedDept.deptName : '未知单位'
+    //   }
+    // })
+    tableData.value = res.list
     currentPage.value = res.pageNum
     pageSize.value = res.pageSize
     total.value = res.total
