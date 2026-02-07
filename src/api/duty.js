@@ -38,6 +38,32 @@ export const listGdPerson = () => {
   })
 }
 
+export const queryGdPerson = (data) => {
+  return request({
+    url: '/GdPerson/query',
+    method: 'post',
+    data
+  })
+}
+
+export const deleteGdPerson = (entityId) => {
+  return request({
+    url: '/GdPerson/removeById.do',
+    method: 'delete',
+    params: {
+      entityID: entityId
+    }
+  })
+}
+
+export const saveGdPerson = (data) => {
+  return request({
+    url: '/GdPerson/save',
+    method: 'post',
+    data
+  })
+}
+
 export const saveMilitia = (data) => {
   return request({
     url: '/militia/save',
@@ -101,5 +127,29 @@ export const downloadDutyLog = (path) => {
       path
     },
     responseType: 'blob' // 关键：返回二进制数据
+  })
+}
+
+export function listPost(query) {
+    return request({
+        url: '/system/post/list',
+        method: 'get',
+        params: query
+    })
+}
+
+export const queryApprove = (data) => {
+  return request({
+    url: '/duty/leaderAudit',
+    method: 'post',
+    data
+  })
+}
+
+export const approve = (data) => {
+  return request({
+    url: '/duty/commitAudit',
+    method: 'post',
+    data
   })
 }

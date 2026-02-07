@@ -3,23 +3,6 @@
 
     <!-- 搜索栏 -->
     <el-form :inline="true" :model="searchForm" class="search-form">
-      <el-form-item label="值班时间">
-        <el-date-picker
-            v-model="searchForm.startTime"
-            placeholder="值班开始时间"
-            type="datetime"
-            value-format="YYYY-MM-DD HH:mm:ss"
-          />
-        <!-- <el-date-picker
-          v-model="searchForm.timeRange"
-          type="daterange"
-          range-separator="至"
-          start-placeholder="开始日期"
-          end-placeholder="结束日期"
-          value-format="YYYY-MM-DD"
-        /> -->
-      </el-form-item>
-
       <el-form-item label="人员名称">
         <el-input
           v-model="searchForm.personName"
@@ -41,7 +24,7 @@
     <!-- 操作栏 -->
     <div class="toolbar">
       <el-button type="primary" @click="openAddDialog">
-        新增值班人员
+        新增人员
       </el-button>
     </div>
 
@@ -52,16 +35,11 @@
       stripe
       style="width: 100%"
     >
-      <el-table-column prop="personName" label="值班人员" />
+      <el-table-column prop="personName" label="人员姓名" />
+      <el-table-column prop="personType" label="人员类别" />
       <el-table-column prop="deptName" label="单位" />
-      <el-table-column prop="dutyTeam" label="值班分队" />
-      <el-table-column prop="startTime" label="开始时间" />
-      <el-table-column prop="endTime" label="结束时间" />
-      <el-table-column prop="personNum" label="人数" />
-      <el-table-column prop="seatName" label="值班席位" />
-      <el-table-column prop="seatPhone" label="席位电话" />
-      <el-table-column prop="leader" label="负责人" />
-      <el-table-column prop="contactPhone" label="联系人电话" />
+      <el-table-column prop="duty" label="职务" />
+      <el-table-column prop="mobilePhone" label="联系电话" />
 
       <el-table-column label="操作" width="160" fixed="right">
         <template #default="{ row }">
@@ -107,8 +85,8 @@
         :rules="rules"
         label-width="100px"
       >
-        <el-form-item label="值班人员" prop="personId">
-          <el-select 
+        <el-form-item label="人员名称" prop="personName">
+          <!-- <el-select 
             v-model="formData.personId" 
             placeholder="请选择值班人员"
             style="width: 100%"
@@ -119,7 +97,8 @@
               :label="person.label"
               :value="person.value"
             />
-          </el-select>
+          </el-select> -->
+          <el-input v-model="formData.personName" />
         </el-form-item>
 
         <el-form-item label="单位" prop="deptId">
@@ -134,9 +113,9 @@
            />
         </el-form-item>
 
-        <el-form-item label="值班席位" prop="seatName">
+        <el-form-item label="人员类别" prop="personType">
           <el-select 
-            v-model="formData.seatName" 
+            v-model="formData.personType" 
             placeholder="请选择值班席位"
             style="width: 100%"
           >
@@ -149,43 +128,27 @@
           </el-select>
         </el-form-item>
 
-        <el-form-item label="席位电话" prop="seatPhone">
-          <el-input v-model="formData.seatPhone" />
+        <el-form-item label="联系电话" prop="mobilePhone">
+          <el-input v-model="formData.mobilePhone" />
+        </el-form-item>
+        <el-form-item label="职务" prop="duty">
+          <!-- <el-input v-model="formData.duty" /> -->
+           <el-select 
+            v-model="formData.duty" 
+            placeholder="请选择值班席位"
+            style="width: 100%"
+          >
+            <el-option
+              v-for="seat in personnelOptions"
+              :key="seat.id"
+              :label="seat.label"
+              :value="seat.value"
+            />
+          </el-select>
         </el-form-item>
 
-        <el-form-item label="负责人" prop="leader">
-          <el-input v-model="formData.leader" />
-        </el-form-item>
 
-        <el-form-item label="联系电话" prop="contactPhone">
-          <el-input v-model="formData.contactPhone" />
-        </el-form-item>
-
-        <el-form-item label="值班分队" prop="dutyTeam">
-          <el-input v-model="formData.dutyTeam" />
-        </el-form-item>
-
-        <el-form-item label="人数" prop="personNum">
-          <el-input v-model="formData.personNum" />
-        </el-form-item>
-
-
-        <el-form-item label="开始时间" prop="startTime">
-          <el-date-picker
-            v-model="formData.startTime"
-            placeholder="值班开始时间"
-            type="datetime"
-            value-format="YYYY-MM-DD HH:mm:ss"
-          />
-        </el-form-item>
-        <el-form-item label="结束时间" prop="endTime">
-          <el-date-picker
-            v-model="formData.endTime"
-            placeholder="值班结束时间"
-            type="datetime"
-            value-format="YYYY-MM-DD HH:mm:ss"
-          />
-        </el-form-item>
+        
       </el-form>
 
       <template #footer>
@@ -203,7 +166,7 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { saveDuty, queryDuty, deleteDuty, listGdPerson } from '@/api/duty'
+import { saveGdPerson, listGdPerson, queryGdPerson, deleteGdPerson, listPost  } from '@/api/duty'
 import { listDept } from "@/api/system/dept"
 
 const { proxy } = getCurrentInstance()
@@ -212,16 +175,16 @@ onMounted(() => {
     deptOptions.value = proxy.handleTree(response.data, "deptId")
     deptOptions1.value = response.data
   })
-  listGdPerson().then(res => {
-    personnelOptions.value = res.map(item => {
+  listPost().then(res => {
+    personnelOptions.value = res.rows.map(item => {
       return {
-        id: item.id,
-        label: item.personName,
-        value: item.id
+        id: item.postId,
+        label: item.postName,
+        value: item.postName
       }
     })
   })
-  getDutyList()
+  getGdPerson()
 })
 
 const pageSize = ref(10)
@@ -230,7 +193,7 @@ const total = ref(0)
 
 /* 搜索条件 */
 const searchForm = reactive({
-  startTime: '',
+  // startTime: '',
   personName: ''
 })
 
@@ -247,54 +210,43 @@ const deptOptions1 = ref([])
 
 /* 席位选项 */
 const seatOptions = ref([
-  { id: 1, label: '值班领导', value: '值班领导' },
-  { id: 2, label: '领导助理', value: '领导助理' },
-  { id: 3, label: '主值班员', value: '主值班员' },
-  { id: 4, label: '辅助值班员', value: '辅助值班员' }
+  { id: 1, label: '现役', value: '现役' },
+  { id: 2, label: '文职', value: '文职' },
+  { id: 3, label: '民兵', value: '民兵' },
 ])
 
 /* 表格数据（后期换接口） */
 const tableData = ref([
   {
-    id: 1,
-    personId: '张三',
-    deptId: '单位A',
-    dutyTeam: '一小队',
-    startTime: '2026-02-01 08:00:00',
-    endTime: '2026-02-01 18:00:00',
-    personNum: '5',
-    seatName: '1号席位',
-    seatPhone: '010-12345678',
-    leader: '李四',
-    contactPhone: '13800138000'
+    
   }
 ])
 
 const handleSizeChange = (val) => {
   pageSize.value = val
-  getDutyList()
+  getGdPerson()
 }
 const handleCurrentChange = (val) => {
   currentPage.value = val
-  getDutyList()
+  getGdPerson()
 }
-const getDutyList = () => {
-  queryDuty({
+const getGdPerson = () => {
+  queryGdPerson({
     pageNum: currentPage.value,
     pageSize: pageSize.value,
   }).then(res => {
      tableData.value = res.list.map(item => {
       // 根据 personId 查找对应的人员名称
-      const matchedPerson = personnelOptions.value.find(person => person.id === item.id)
-      debugger
+      // const matchedPerson = personnelOptions.value.find(person => person.id === item.personId)
       const matchedDept = deptOptions1.value.find(dept => dept.deptId === item.deptId)
       // 返回新对象，包含原有字段和新增的 personName 字段
       return {
         ...item,
-        personName: matchedPerson ? matchedPerson.label : '未知人员' ,// 默认值处理
+        // personName: matchedPerson ? matchedPerson.label : '未知人员' ,// 默认值处理
         deptName: matchedDept ? matchedDept.deptName : '未知单位'
       }
     })
+    // tableData.value = res.list
     currentPage.value = res.pageNum
     pageSize.value = res.pageSize
     total.value = res.total
@@ -304,88 +256,85 @@ const getDutyList = () => {
 /* 搜索 */
 const handleSearch = () => {
   console.log('搜索条件', searchForm)
-  queryDuty({
+  queryGdPerson({
     pageNum: currentPage.value,
     pageSize: pageSize.value,
     ...searchForm
   }).then(res => {
      tableData.value = res.list.map(item => {
       // 根据 personId 查找对应的人员名称
-      const matchedPerson = personnelOptions.value.find(person => person.id === item.personId)
+      // const matchedPerson = personnelOptions.value.find(person => person.id === item.personId)
       const matchedDept = deptOptions1.value.find(dept => dept.deptId === item.deptId)
       // 返回新对象，包含原有字段和新增的 personName 字段
       return {
         ...item,
-        personName: matchedPerson ? matchedPerson.label : '未知人员' ,// 默认值处理
+        // personName: matchedPerson ? matchedPerson.label : '未知人员' ,// 默认值处理
         deptName: matchedDept ? matchedDept.deptName : '未知单位'
       }
     })
     currentPage.value = res.pageNum
     pageSize.value = res.pageSize
+    total.value = res.total
   })
   // 调接口
 }
 
 const resetSearch = () => {
-  searchForm.startTime = ''
+  // searchForm.startTime = ''
   searchForm.personName = ''
-  getDutyList()
+  getGdPerson()
 }
 
 /* 弹窗 */
 const dialogVisible = ref(false)
-const dialogTitle = ref('新增值班人员')
+const dialogTitle = ref('新增人员')
 
 const formRef = ref(null)
 const formData = reactive({
-  id: null,
-  personId: '',
-  deptId: '',
-  seatName: '',
-  seatPhone: '',
-  leader: '',
-  contactPhone: '',
-  dutyTeam: '',
-  personNum: '',
-  startTime: '',
-  endTime: ''
+   id: null,
+  personName: '张三',
+  deptId: '单位A',
+  duty: '值班领导',
+  mobilePhone: '13800138000',
+  personType: '正式人员',
+  createTime: new Date().toISOString()
 })
 
 /* 校验规则 */
 const rules = {
-  personId: [{ required: true, message: '请选择值班人员', trigger: 'change' }],
-  deptId: [{ required: true, message: '请输入单位ID', trigger: 'blur' }],
-  seatName: [{ required: true, message: '请选择值班席位', trigger: 'change' }],
-  seatPhone: [{ required: true, message: '请输入席位电话', trigger: 'blur' }],
-  leader: [{ required: true, message: '请输入负责人', trigger: 'blur' }],
-  contactPhone: [
+  personName: [
+    { required: true, message: '请输入人员姓名', trigger: 'blur' }
+  ],
+  deptId: [
+    { required: true, message: '请选择单位', trigger: 'change' }
+  ],
+  duty: [
+    { required: true, message: '请输入职务', trigger: 'blur' }
+  ],
+  mobilePhone: [
     { required: true, message: '请输入联系电话', trigger: 'blur' },
     { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号码', trigger: 'blur' }
   ],
-  dutyTeam: [{ required: true, message: '请输入值班分队', trigger: 'blur' }],
-  personNum: [
-    { required: true, message: '请输入人数', trigger: 'blur' },
-    { pattern: /^\d+$/, message: '请输入有效数字', trigger: 'blur' }
+  personType: [
+    { required: true, message: '请选择人员类别', trigger: 'blur' }
   ],
-  startTime: [{ required: true, message: '请选择开始时间', trigger: 'change' }],
-  endTime: [{ required: true, message: '请选择结束时间', trigger: 'change' }]
+  createTime: [
+    { required: true, message: '创建时间不能为空', trigger: 'blur' }
+  ]
 }
 
 /* 新增 */
 const openAddDialog = () => {
   dialogTitle.value = '新增值班人员'
+  const now = new Date();
   Object.assign(formData, {
-    id: null,
-    personId: '',
-    deptId: '',
-    seatName: '',
-    seatPhone: '',
-    leader: '',
-    contactPhone: '',
-    dutyTeam: '',
-    personNum: '',
-    startTime: '',
-    endTime: ''
+     id: null,
+  personName: '',
+  deptId: '',
+  duty: '',
+  mobilePhone: '',
+  personType: '',
+  createTime: `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`
   })
   dialogVisible.value = true
 }
@@ -416,34 +365,30 @@ const isBeyondEditableTime = (startTime) => {
 }
 /* 编辑 */
 const editRow = (row) => {
-  if (isBeyondEditableTime(row.startTime)) {
-    ElMessageBox.confirm(
-      '超出可修改时间，是否需要提交审核？',
-      '提示',
-      {
-        confirmButtonText: '确认',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }
-    )
-      .then(() => {
-        dialogTitle.value = '修改值班信息'
+  // if (isBeyondEditableTime(row.startTime)) {
+  //   ElMessageBox.confirm(
+  //     '超出可修改时间，是否需要提交审核？',
+  //     '提示',
+  //     {
+  //       confirmButtonText: '确认',
+  //       cancelButtonText: '取消',
+  //       type: 'warning'
+  //     }
+  //   )
+  //     .then(() => {
+  //       // 用户点击“确认”按钮后的逻辑
+  //       ElMessage.info('已提交审核')
+  //       // 这里可以调用提交审核的接口或其他逻辑
+  //     })
+  //     .catch(() => {
+  //       // 用户点击“取消”按钮后的逻辑
+  //       ElMessage.info('已取消操作')
+  //     })
+  //   return
+  // }
+  dialogTitle.value = '修改值班信息'
   Object.assign(formData, row)
   dialogVisible.value = true
-        // 用户点击“确认”按钮后的逻辑
-        // ElMessage.info('已提交审核') 
-        // 这里可以调用提交审核的接口或其他逻辑
-        
-      })
-      .catch(() => {
-        // 用户点击“取消”按钮后的逻辑
-        ElMessage.info('已取消操作')
-      })
-    return
-  }
-  // dialogTitle.value = '修改值班信息'
-  // Object.assign(formData, row)
-  // dialogVisible.value = true
 }
 
 /* 提交 */
@@ -453,14 +398,14 @@ const submitForm = () => {
 
     if (formData.id) {
       let params = { ...formData }
-      saveDuty(params).then(res => {
-          getDutyList()
+      saveGdPerson(params).then(res => {
+          getGdPerson()
         ElMessage.success('修改成功')
       })
     } else {
       let params = { ...formData }
-      saveDuty(params).then(res => {
-        getDutyList()
+      saveGdPerson(params).then(res => {
+        getGdPerson()
         ElMessage.success('添加成功')
       })
       // formData.id = Date.now()
@@ -477,8 +422,8 @@ const deleteRow = (row) => {
   ElMessageBox.confirm('确认删除该值班人员吗？', '提示', {
     type: 'warning'
   }).then(() => {
-    deleteDuty(row.id).then(res => {
-      getDutyList()
+    deleteGdPerson(row.id).then(res => {
+      getGdPerson()
     })
     ElMessage.success('删除成功')
   })
