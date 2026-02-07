@@ -17,3 +17,12 @@ export function dutyStatistics(query) {
     data: query
   })
 }
+
+// 值班兵力描述
+export function dutyStatDesc(query) {
+  return request({
+    url: '/duty/dutyStatDesc',
+    method: 'POST',
+    data: query
+  })
+}

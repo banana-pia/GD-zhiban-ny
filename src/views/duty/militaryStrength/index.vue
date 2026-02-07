@@ -8,7 +8,7 @@
           <div @click="changeTab(1)">值班兵力</div>
           <div>
             <!-- 军分区各级共 0 人负责值班任务 -->
-            全区值班人员现役X人、文职Xx人、民兵XX人。
+            {{ descBl }}
           </div>
         </div>
       </div>
@@ -29,7 +29,8 @@
 
           <div>兵力统计</div>
           <div>
-            <el-date-picker v-model="monthParams" value-format="YYYY-MM" @change="changeData" type="month" placeholder="选择月份" />
+            <el-date-picker v-model="monthParams" value-format="YYYY-MM" @change="changeData" type="month"
+              placeholder="选择月份" />
           </div>
         </div>
       </div>
@@ -42,13 +43,14 @@
 // -------------------- 依赖引入 --------------------
 import { ref, reactive, toRefs, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import * as echarts from 'echarts'
-import { dutyStatistics } from '@/api/duty/dutyman'
+import { dutyStatistics, dutyStatDesc } from '@/api/duty/dutyman'
 
 
 // -------------------- 图表配置 --------------------
 const chartRef = ref(null)
 let chartInstance = null
 const monthParams = ref('')
+const descBl = ref('') //兵力统计描述
 const curTab = ref(1)
 const option = {
   // backgroundColor: '#050f3a',
@@ -82,7 +84,7 @@ const option = {
         color: '#ffffff'
       }
     },
-    data: ['南昌警备区', '赣州军分区', '吉安军分区', '九江军分区', '上饶军分区', '抚州军分区', '宜春军分区','萍乡军分区','景德镇军分区','鹰潭军分区','新余军分区']
+    data: [],
   },
   yAxis: {
     type: 'value',
@@ -102,14 +104,14 @@ const option = {
     splitLine: {
       show: false          // ❌ 不要背景横线刻度
     },
-    min: 0,
-    max: 1
+    // min: 0,
+    // max: 1
   },
   series: [
     {
       type: 'bar',
       barWidth: 16,
-      data: [0.32, 0.45, 0.28, 0.36, 0.52, 0.41, 0.63,0.56,0.67,0.76,0.67],
+      data:[],
       itemStyle: {
         borderRadius: [8, 8, 0, 0],
         color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [
@@ -125,17 +127,39 @@ const getData = () => {
   if (curTab.value == 1) {
     dutyStatistics({ statDate: monthParams.value }).then(res => {
       console.log('兵力统计数据：', res)
-      // 假设接口返回的数据格式为 { labels: [...], values: [...] }
-      if (res && res.labels && res.values) {
-        option.xAxis.data = res.labels
-        option.series[0].data = res.values
-        if (chartInstance) {
-          chartInstance.setOption(option)
-        }
+      let xAxisDataNew = []
+      let echartsDataNew = []
+      if (res.length) {
+        res[0].children?.forEach((item, index) => {
+          // item.forEach((child, childIndex) => {
+           
+            Object.keys(item).forEach((key)=>{
+              if(key !== 'children'){
+                xAxisDataNew.push(key)
+                echartsDataNew.push(item[key])
+              }
+            })
+          // })
+        })
       }
+      option.xAxis.data = xAxisDataNew
+      option.series[0].data = echartsDataNew
+      if (chartInstance) {
+        chartInstance.setOption(option)
+      }
+      //     chartInstance.setOption(option)
+      //   }
+      // }
     })
   }
 
+}
+//<------------获取值班兵力描述------------>
+const getDutyStatDesc = () => {
+  dutyStatDesc({ date: monthParams.value }).then(res => {
+    console.log('值班兵力描述：', res)
+    descBl.value = res
+  })
 }
 //<------------切换tab------------>
 const changeTab = (tab) => {
@@ -145,6 +169,7 @@ const changeTab = (tab) => {
 //<------------切换当前月------------>
 const changeData = () => {
   getData()
+  getDutyStatDesc()
 }
 //<------------获取当前月------------>
 const getCurrentMonth = () => {
@@ -172,10 +197,11 @@ onMounted(() => {
     chartInstance = echarts.init(chartRef.value)
     chartInstance.setOption(option)
     await getData()
-    
+
   })
 
   monthParams.value = getCurrentMonth()
+  getDutyStatDesc()
 })
 
 // 页面销毁时释放
