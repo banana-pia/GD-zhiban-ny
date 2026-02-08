@@ -78,6 +78,8 @@ import { ref, reactive,onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { saveDutyLog, queryDutyLog, deleteDutyLog, downloadDutyLog } from '@/api/duty'
 import ShowPdf from '@/components/showpdf.vue'
+import useUserStore from '@/store/modules/user'
+const userStore = useUserStore()
 
 const pdfDialogVisible = ref(false)
 const currentPdfBlob = ref(null)
@@ -174,7 +176,7 @@ const handleFileUpload = async (event) => {
       formData.append('uploadTime', uploadTime);
       // const uploadTime = new Date().toISOString().replace(/\.(\d{3})Z$/, ''); ; // 输出: "2026-02-05T14:00:34.123Z"
       // formData.append('uploadTime', uploadTime);
-      formData.append('uploader', '当前用户');
+      formData.append('uploader', userStore.nickName);
       console.log('上传参数', formData);
       debugger
 
