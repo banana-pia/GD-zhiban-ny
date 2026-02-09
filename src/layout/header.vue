@@ -34,6 +34,8 @@ import { ref, reactive, onMounted, onBeforeUnmount, nextTick, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 
 import UserDropdown from './components/UserDropdown.vue'
+import useUserStore from '@/store/modules/user'
+const userStore = useUserStore()
 const router = useRouter()
 const route = useRoute()
 
@@ -58,6 +60,16 @@ const sheng = [
 const shi = [
   {label:'值班信息',value:'1',route:'/dutyMan'},
   {label:'人武部值班信息',value:'6',route:'/information'},
+  {label:'兵力情况',value:'2',route:'/militaryStrength'},
+  // {label:'首长活动',value:'3'},
+  // {label:'本周主要工作',value:'4'},
+  // {label:'应急突发情况处置',value:'5'},
+  {label:'值班简报',value:'7',route:'/dutylog'},
+
+]
+const xian = [
+  {label:'值班信息',value:'1',route:'/dutyMan'},
+  // {label:'人武部值班信息',value:'6',route:'/information'},
   {label:'兵力情况',value:'2',route:'/militaryStrength'},
   // {label:'首长活动',value:'3'},
   // {label:'本周主要工作',value:'4'},
@@ -112,9 +124,13 @@ const changBtn = (item) => {
   // }
 }
 
-onMounted(() => {
+onMounted(async() => {
   timeCpt = setInterval(getCurTime, 1000)
-  menuList.value = sheng  //默认省军区菜单
+  let data = await userStore.getInfo()
+  let deptName = data.user.dept.deptName
+  menuList.value = deptName.includes('省军区') ? sheng : (deptName.includes('军分区') ||  deptName.includes('警备区')) ? shi : xian
+  console.log(data)
+  
 })
 
 onBeforeUnmount(() => {

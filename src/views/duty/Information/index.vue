@@ -77,7 +77,7 @@ const openDio = (row) => {
   dialogVisible.value = true
   debugger
   console.log('点击了部门：', row.dept_name)
-  all.value.forEach((item) => {
+  allData.value.forEach((item) => {
     if (item.children.length) {
       item.children.forEach((value) => {
         Object.keys(value).forEach((val) => {
@@ -92,6 +92,7 @@ const openDio = (row) => {
     }
   })
 }
+
 
 //------------------- 日期查询 -------------------
 const curDate = ref('')

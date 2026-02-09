@@ -17,7 +17,7 @@
         <div>
           <div @click="changeTab(2)">行动兵力</div>
           <div>
-            全区各级共动用兵力 0 人
+            {{ strebl }}
           </div>
         </div>
       </div>
@@ -29,13 +29,71 @@
 
           <div>兵力统计</div>
           <div>
-            <el-date-picker v-model="monthParams" value-format="YYYY-MM" @change="changeData" type="month"
-              placeholder="选择月份" />
+            <el-date-picker v-model="dayParams" value-format="YYYY-MM-DD" @change="changeData" type="day"
+              placeholder="选择日期" />
           </div>
         </div>
       </div>
       <div ref="chartRef" id="echarts-military"></div>
     </div>
+  </div>
+  <div class="dia-con">
+    <el-dialog v-model="dialogVisible">
+      <div>
+        <div class="dio-header">
+          <p>
+            <Discount style="width: 24px; height: 24px;margin: 18px 10px 10px 10px;" />
+          </p>
+          <p>
+            <!-- {{ dioTitle }} -->
+            行动兵力情况
+          </p>
+        </div>
+        <div class="dio-body">
+          <!-- :span-method="spanMethod" -->
+          <el-table class="web-table harder-border" :data="tableData" border  style="width: 100%">
+            <!-- 基础信息 -->
+            <el-table-column type="index" width="50" label="序号" />
+            <el-table-column prop="month" label="月份" />
+
+            <!-- 任务来源 -->
+            <el-table-column label="任务来源">
+              <el-table-column prop="taskName" label="任务名称" />
+              <el-table-column prop="taskSource" label="任务来源" />
+              <el-table-column prop="demandUnitDivision" label="需求单位" />
+            </el-table-column>
+
+            <!-- 基本情况 -->
+            <el-table-column label="基本情况">
+              <el-table-column prop="taskType" label="任务类型" />
+              <el-table-column prop="taskTimeRange" label="执行时间" width="130">
+                <template #default="{ row }">
+                  <div v-if="row.taskTimeStart != row.taskTimeEnd">{{ row.taskTimeStart }}<br /> ~ <br />{{ row.taskTimeEnd }}</div>
+                  <div v-else>{{ row.taskTimeStart }}</div>
+                </template>
+              </el-table-column>
+              <el-table-column prop="days" label="天数" />
+              <el-table-column prop="participantCount" label="执行人数" />
+              <el-table-column prop="personDays" label="人/天数" />
+              <el-table-column prop="specificTask" label="民兵担任的具体任务" />
+            </el-table-column>
+
+            <!-- 审核报批 -->
+            <el-table-column label="审核报批">
+              <el-table-column prop="approveUnit" label="批准单位" />
+              <el-table-column prop="approveFileName" label="批准用兵文件" />
+              <el-table-column prop="fileNumber" label="发文字号" />
+            </el-table-column>
+
+            <!-- 现场指挥 -->
+            <el-table-column label="现场指挥">
+              <el-table-column prop="commandUnit" label="指挥单位" />
+              <el-table-column prop="commanderInfo" label="指挥人员，电话" />
+            </el-table-column>
+          </el-table>
+        </div>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
@@ -43,14 +101,118 @@
 // -------------------- 依赖引入 --------------------
 import { ref, reactive, toRefs, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import * as echarts from 'echarts'
-import { dutyStatistics, dutyStatDesc } from '@/api/duty/dutyman'
+import { dutyStatistics, dutyStatDesc, soldierStatDesc, soldierStatList, previewSoldierStat } from '@/api/duty/dutyman'
 
+//--------------------弹窗--------------------------
+const tableDataLow = ref([{
+    taskId: 1,
+    index: 1,
+    month: '1月',
+    task_name: '2025年元旦升旗安保',
+    task_source: '区政府',
+    request_unit: '东城区人武部',
+    task_type: '协助安保',
+    task_time: '2024-12-31 ~ 2025-01-01',
+    days: 1,
+    people: '民兵150人',
+    soldier_count: 150,
+    service_type: '安保勤务',
+    approve_unit: '东城区政府',
+    approve_leader: '张三',
+    approve_time: '2024-12-20',
+    commander: '李四',
+    contact: '138****0001'
+  },
+  {
+    taskId: 1,
+    index: 1,
+    month: '1月',
+    task_name: '2025年元旦升旗安保',
+    task_source: '区政府',
+    request_unit: '东城区人武部',
+    task_type: '协助安保',
+    task_time: '2024-12-31 ~ 2025-01-01',
+    days: 1,
+    people: '民兵150人',
+    soldier_count: 150,
+    service_type: '安保勤务',
+    approve_unit: '东城区政府',
+    approve_leader: '张三',
+    approve_time: '2024-12-20',
+    commander: '王五',
+    contact: '138****0002'
+  }])
+const dialogVisible = ref(false)
+function buildRowSpan(data) {
+  const map = new Map()
+  const result = data.map(item => ({ ...item, _rowSpan: {} }))
+
+  data.forEach((item, index) => {
+    const key = item.taskId
+    if (!map.has(key)) {
+      map.set(key, { index, count: 1 })
+    } else {
+      map.get(key).count++
+    }
+  })
+
+  map.forEach(({ index, count }) => {
+    result[index]._rowSpan.main = count
+    for (let i = index + 1; i < index + count; i++) {
+      result[i]._rowSpan.main = 0
+    }
+  })
+
+  return result
+}
+
+const tableData = ref([])
+//获取值班兵力列表
+const getSoldierStatList = (deptName) => {
+  soldierStatList({ data: monthParams.value,pageNum:1,pageSize:'1000',deptName }).then(res => {
+    dialogVisible.value = true
+    tableData.value = res.list
+  })
+}
+
+/**
+ * 合并规则
+ */
+function spanMethod({ row, column }) {
+  const mergeCols = [
+    'index',
+    'month',
+    'task_name',
+    'task_source',
+    'request_unit',
+    'task_type',
+    'task_time',
+    'days',
+    'people',
+    'soldier_count',
+    'service_type',
+    'approve_unit',
+    'approve_leader',
+    'approve_time'
+  ]
+
+  if (mergeCols.includes(column.property)) {
+    const rowspan = row._rowSpan.main
+    return {
+      rowspan,
+      colspan: rowspan ? 1 : 0
+    }
+  }
+}
 
 // -------------------- 图表配置 --------------------
 const chartRef = ref(null)
 let chartInstance = null
 const monthParams = ref('')
+const dayParams = ref('')
 const descBl = ref('') //兵力统计描述
+const strebl = ref('') //行动兵力描述
+
 const curTab = ref(1)
 const option = {
   // backgroundColor: '#050f3a',
@@ -61,10 +223,10 @@ const option = {
   //   textStyle: { color: '#fff', fontSize: 18 }
   // },
   grid: {
-    left: 60,
+    left: 100,
     right: 40,
     top: 40,
-    bottom: 80
+    bottom: 100
   },
   xAxis: {
     type: 'category',
@@ -111,7 +273,7 @@ const option = {
     {
       type: 'bar',
       barWidth: 16,
-      data:[],
+      data: [],
       itemStyle: {
         borderRadius: [8, 8, 0, 0],
         color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [
@@ -125,20 +287,20 @@ const option = {
 //<------------获取值班兵力和行动兵力数据------------>
 const getData = () => {
   if (curTab.value == 1) {
-    dutyStatistics({ statDate: monthParams.value }).then(res => {
+    dutyStatistics({ data: dayParams.value }).then(res => {
       console.log('兵力统计数据：', res)
       let xAxisDataNew = []
       let echartsDataNew = []
       if (res.length) {
         res[0].children?.forEach((item, index) => {
           // item.forEach((child, childIndex) => {
-           
-            Object.keys(item).forEach((key)=>{
-              if(key !== 'children'){
-                xAxisDataNew.push(key)
-                echartsDataNew.push(item[key])
-              }
-            })
+
+          Object.keys(item).forEach((key) => {
+            if (key !== 'children') {
+              xAxisDataNew.push(key)
+              echartsDataNew.push(item[key])
+            }
+          })
           // })
         })
       }
@@ -152,13 +314,45 @@ const getData = () => {
       // }
     })
   }
+  if (curTab.value == 2) {
+    previewSoldierStat({ data: monthParams.value }).then((res)=>{
+      console.log('兵力统计数据：', res)
+      let xAxisDataNew = []
+      let echartsDataNew = []
+      if (res.length) {
+        res[0].children?.forEach((item, index) => {
+          // item.forEach((child, childIndex) => {
+
+          Object.keys(item).forEach((key) => {
+            if (key !== 'children') {
+              xAxisDataNew.push(key)
+              echartsDataNew.push(item[key])
+            }
+          })
+          // })
+        })
+      }
+      option.xAxis.data = xAxisDataNew
+      option.series[0].data = echartsDataNew
+      if (chartInstance) {
+        chartInstance.setOption(option)
+      }
+    })
+  }
 
 }
 //<------------获取值班兵力描述------------>
 const getDutyStatDesc = () => {
-  dutyStatDesc({ date: monthParams.value }).then(res => {
+  dutyStatDesc({ startDate: dayParams.value ,endDate: dayParams.value}).then(res => {
     console.log('值班兵力描述：', res)
     descBl.value = res
+  })
+}
+//<------------获取行动兵力描述------------>
+const getZdysx = () => {
+  soldierStatDesc({ startDate: dayParams.value ,endDate: dayParams.value}).then(res => {
+    console.log('行动兵力描述：', res)
+    strebl.value = res
   })
 }
 //<------------切换tab------------>
@@ -166,7 +360,7 @@ const changeTab = (tab) => {
   curTab.value = tab
   getData()
 }
-//<------------切换当前月------------>
+//<------------切换当前日------------>
 const changeData = () => {
   getData()
   getDutyStatDesc()
@@ -177,6 +371,17 @@ const getCurrentMonth = () => {
   const year = date.getFullYear()
   const month = String(date.getMonth() + 1).padStart(2, '0')
   return `${year}-${month}`
+}
+//获取当前日
+const getNowFormatDate = () => {
+  let date = new Date(),
+    year = date.getFullYear(), //获取完整的年份(4位)
+    month = date.getMonth() + 1, //获取当前月份(0-11,0代表1月)
+    strDate = date.getDate() // 获取当前日(1-31)
+  if (month < 10) month = `0${month}` // 如果月份是个位数，在前面补0
+  if (strDate < 10) strDate = `0${strDate}` // 如果日是个位数，在前面补0
+
+  return `${year}-${month}-${strDate}`
 }
 //<------------echarts自适应------------>
 window.addEventListener('resize', () => {
@@ -196,12 +401,21 @@ onMounted(() => {
   nextTick(async () => {
     chartInstance = echarts.init(chartRef.value)
     chartInstance.setOption(option)
+    chartInstance.on('click', function (params) {
+      if(curTab.value == 2) {
+        debugger
+       getSoldierStatList(params.name) 
+
+      }
+    });
     await getData()
 
   })
 
   monthParams.value = getCurrentMonth()
+  dayParams.value = getNowFormatDate()
   getDutyStatDesc()
+  getZdysx()
 })
 
 // 页面销毁时释放
@@ -263,9 +477,9 @@ onBeforeUnmount(() => {
   background-image: url('@/assets/images/bottom-bl.png');
   background-size: 100% 100%;
   background-repeat: no-repeat;
-  margin-bottom: 40px;
+  // margin-bottom: 40px;
   padding: 20px;
-  margin-top: 100px;
+  margin-top: 7vh;
 
   >div:nth-child(1) {
     width: 160px;
@@ -386,5 +600,76 @@ onBeforeUnmount(() => {
   width: 100%;
   height: calc(100% - 120px);
   /* ❗ 没高度 = 一定不显示 */
+}
+.dia-con {
+  :deep(.el-dialog) {
+    padding: 0px !important;
+    width: 90vw;
+    background: #00020c;
+    position: relative;
+    z-index: 999;
+    margin-top: 8vh;
+    // border: 1px solid #0E5BF6;
+
+    .el-dialog__header {
+      height: 0px;
+      padding: 0;
+    }
+
+    .el-dialog__headerbtn {
+      display: flex;
+    }
+
+    .el-dialog__close {
+      width: 32px;
+      height: 32px;
+      margin-top: 4px;
+      margin-left: 20px;
+      background: url('@/assets/images/close.png');
+      background-size: 28px 28px;
+      background-repeat: no-repeat;
+
+      >svg {
+        display: none;
+      }
+    }
+
+    .el-dialog__body {
+      padding: 0px;
+      margin: 0px;
+
+    }
+
+    .dio-header {
+      height: 40px;
+      background: url('@/assets/images/dio_header.png');
+      background-size: 125% 40px;
+      background-repeat: no-repeat;
+      display: flex;
+      justify-content: left;
+      align-items: center;
+
+      p {
+        color: #C5E6FF;
+        text-shadow: 1px 2px 3px #002164, 0px 0px 15px #3748FF;
+        font-family: "Alibaba PuHuiTi 3.0";
+        font-size: 22px;
+        font-style: normal;
+        font-weight: 700;
+        letter-spacing: 2.86px;
+      }
+
+    }
+
+    .dio-body {
+      // background: rgba(8, 14, 45, 0.90);
+      padding: 20px 40px;
+      box-sizing: border-box;
+      background: #000B40;
+      box-shadow: 0px 0px 15px 0px #0C52DF inset;
+      // width: 100%;
+      height: 80vh;
+    }
+  }
 }
 </style>

@@ -44,3 +44,31 @@ export function previewDutyLog(query) {
     responseType: 'blob'
   })
 }
+
+//行动兵力统计表
+export function previewSoldierStat(query) {
+  return request({
+    url: `/militia/soldierStat`,
+    method: 'POST',
+    data: query,
+  })
+}
+
+
+//行动兵力统计表列表
+export function soldierStatList(query) {
+  return request({
+    url: `/militia/soldierList`,
+    method: 'POST',
+    data: query,
+  })
+}
+
+//行动兵力描述
+export function soldierStatDesc(query) {
+  return request({
+    url: '/militia/executionStatDesc',
+    method: 'POST',
+    data: query
+  })
+}

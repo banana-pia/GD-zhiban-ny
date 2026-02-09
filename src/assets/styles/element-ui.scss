@@ -153,6 +153,7 @@
   .el-table__row:hover > .el-table__cell {
   background: #182549 !important;
 }
+
 .hover-fixed-row> .el-table__cell {
   background: #182549 !important;
 }
@@ -167,5 +168,33 @@
       font-family: "Alibaba PuHuiTi 3.0";
       font-size: 16px;
     }
+  }
+}
+.harder-border.el-table{
+  thead {
+    th {
+        color: #e4ecff;
+        font-family: Alibaba PuHuiTi 3;
+        font-weight: 600 !important;
+        font-size: 18px !important;
+        line-height: 22.4px;
+        text-align: center;
+        letter-spacing: 0%;
+        background: #1a60ea !important;
+        // width: 1808;
+        height: 30;
+        border-width: 1px;
+        border: 1px solid #5B93FF !important;
+        border-image-source: #5B93FF;
+    }
+    // tr {
+    //   color: #fff !important;
+    //   background: #1A60EA !important;
+    // }
+    // .cell {
+    //   justify-content: center !important;
+    //   text-align: center !important;
+    //   background: #0b2a71 !important;
+    // }
   }
 }

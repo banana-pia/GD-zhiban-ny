@@ -10,18 +10,19 @@
         <p>
           <span class="demonstration">日期查询</span>
           <el-date-picker v-model="curDate" type="month" placeholder="选择日期" :size="size" format="YYYY-MM"
-            @change = "changeTime"
-            value-format="YYYY-MM"  />
+            @change="changeTime" value-format="YYYY-MM" />
         </p>
       </div>
       <div class="tick-right-con">
-        <div :class="{'curTab':curTab == index}" v-for="(item,index) in rightList">
+        <div :class="{ 'curTab': curTab == index }" v-for="(item, index) in rightList">
           <p></p>
           <div>
-            <p @click="changePdf(item.filePath,index,item.fileName)">{{ item.fileName }}</p>
+            <p @click="changePdf(item.filePath, index, item.fileName)">{{ item.fileName }}</p>
             <p>{{ item.uploadTime }}</p>
           </div>
-          <div @click="downloadFile(item.filePath,item.fileName)"><el-icon><Download /></el-icon></div>
+          <div class="download-btn" @click="downloadFile(item.filePath, item.fileName)"><el-icon>
+              <Download />
+            </el-icon></div>
         </div>
       </div>
     </div>
@@ -32,12 +33,12 @@
 import { ref, reactive, toRefs, onMounted } from 'vue'
 import { previewDutyLog, dutyLog } from '@/api/duty/dutyman.js'
 // import ShowPdf from '../../../components/showpdf.vue'
-import FilePreview  from '@/components/previewFile/index.vue'
+import FilePreview from '@/components/previewFile/index.vue'
 import { Download } from '@element-plus/icons-vue'
-import {ElMessage } from 'element-plus'
+import { ElMessage } from 'element-plus'
 
 
-onMounted(()=>{
+onMounted(() => {
   getCurTime()
   getList()
 })
@@ -103,7 +104,7 @@ const rightList = ref([
   }
 ])
 //下载文件
-const downloadFile = async(filePath,fileName) => {
+const downloadFile = async (filePath, fileName) => {
   try {
     // 调用下载接口获取文件 Blob
     const response = await previewDutyLog(filePath)
@@ -135,15 +136,15 @@ const getList = () => {
   //   xzqName: getHashParam('name')
   // }
   let obj = {
-    pageNum:1,
-    pageSize:20,
+    pageNum: 1,
+    pageSize: 20,
   }
   dutyLog(obj).then((res) => {
     rightList.value = res.list
     curTab.value = 0
     let filePath = res.list && res.list[0].filePath ? res.list[0].filePath : ''
     let fileName = res.list && res.list[0].fileName ? res.list[0].fileName : ''
-    dbSelected(filePath,fileName)
+    dbSelected(filePath, fileName)
   })
   // queryJb(obj).then((res) => {
   //   rightList.value = res
@@ -151,13 +152,13 @@ const getList = () => {
   //   dbSelected(res.length && res[0].attaches[0].fileId,res.length && res[0].attaches[0].fileName)
   // })
 }
-const changePdf = (val,index,name) => {
+const changePdf = (val, index, name) => {
   curTab.value = index
-  dbSelected(val,name)
+  dbSelected(val, name)
 
 }
-const dbSelected = (val,name) => {
-  
+const dbSelected = (val, name) => {
+
   fileName.value = name
   iframeUrl.value = val
   // attch({ fileId: val }).then((res) => {
@@ -170,7 +171,7 @@ const dbSelected = (val,name) => {
   // }).catch((err)=>{
   //   iframeUrl.value = 0
   // })
-  
+
 
 }
 
@@ -277,7 +278,7 @@ const dbSelected = (val,name) => {
       padding: 10px 30px;
       border: 1px solid #091a69;
       background: linear-gradient(180deg, rgba(149, 156, 169, 0.00) 30%, rgba(160, 172, 195, 0.21) 100%);
-      
+
 
       >p {
         width: 80px;
@@ -317,16 +318,34 @@ const dbSelected = (val,name) => {
           line-height: normal;
         }
       }
-      &:hover{
+
+      &:hover {
         // border: 1px solid #08F;
-      background: linear-gradient(180deg, rgba(22, 70, 163, 0.00) 18.5%, rgba(21, 80, 196, 0.56) 100%);
+        background: linear-gradient(180deg, rgba(22, 70, 163, 0.00) 18.5%, rgba(21, 80, 196, 0.56) 100%);
 
       }
     }
-    .curTab{
+
+    .curTab {
       background: linear-gradient(180deg, rgba(22, 70, 163, 0.00) 18.5%, rgba(21, 80, 196, 0.56) 100%);
 
     }
   }
+}
+
+.download-btn {
+  position: absolute;
+  right: 30px;
+  width: 24px;
+  height: 24px;
+  font-size: 24px;
+  color: #C5E6FF;
+  text-shadow: 1px 2px 3px #002164, 0px 0px 15px #3748FF;
+  font-family: "Alibaba PuHuiTi 3.0";
+  font-size: 22px;
+  font-style: normal;
+  font-weight: 700;
+  letter-spacing: 2.86px;
+  cursor: pointer;
 }
 </style>

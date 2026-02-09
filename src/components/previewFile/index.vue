@@ -56,7 +56,6 @@ const loadFile = async () => {
   try {
     const res = await previewDutyLog(props.iframeUrl)
     fileBlob.value = res
-    debugger
   } finally {
     loading.value = false
   }
