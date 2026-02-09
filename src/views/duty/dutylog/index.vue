@@ -2,7 +2,7 @@
 <template>
   <div class="tick-con">
     <div class="tick-left">
-      <ShowPdf :iframeUrl="iframeUrl" :name="fileName" />
+      <FilePreview :iframeUrl="iframeUrl" :name="fileName" />
     </div>
     <div class="tick-right">
       <div class="tick-right-title">
@@ -18,8 +18,8 @@
         <div :class="{'curTab':curTab == index}" v-for="(item,index) in rightList">
           <p></p>
           <div>
-            <p @click="changePdf(item.attaches[0].fileId,index,item.attaches[0].fileName)">{{ item.bt }}</p>
-            <p>{{ item.zbrq }}</p>
+            <p @click="changePdf(item.filePath,index,item.fileName)">{{ item.fileName }}</p>
+            <p>{{ item.uploadTime }}</p>
           </div>
         </div>
       </div>
@@ -29,8 +29,10 @@
 
 <script setup>
 import { ref, reactive, toRefs, onMounted } from 'vue'
-// import { queryJb, attch } from '@/axios/duty.js'
-import ShowPdf from '../../../components/showpdf.vue'
+import { previewDutyLog, dutyLog } from '@/api/duty/dutyman.js'
+// import ShowPdf from '../../../components/showpdf.vue'
+import FilePreview  from '@/components/previewFile/index.vue'
+
 
 onMounted(()=>{
   getCurTime()
@@ -78,6 +80,7 @@ const getHashParam = (param) => {
 
 }
 
+
 // <!-- 右侧列表数据 -->
 const curTab = ref(0)
 const iframeUrl = ref('')
@@ -98,11 +101,22 @@ const rightList = ref([
 ])
 //获取列表数据
 const getList = () => {
+  // let obj = {
+  //   date:curDate.value,
+  //   danwei:'',
+  //   xzqName: getHashParam('name')
+  // }
   let obj = {
-    date:curDate.value,
-    danwei:'',
-    xzqName: getHashParam('name')
+    pageNum:1,
+    pageSize:20,
   }
+  dutyLog(obj).then((res) => {
+    rightList.value = res.list
+    curTab.value = 0
+    let filePath = res.list && res.list[0].filePath ? res.list[0].filePath : ''
+    let fileName = res.list && res.list[0].fileName ? res.list[0].fileName : ''
+    dbSelected(filePath,fileName)
+  })
   // queryJb(obj).then((res) => {
   //   rightList.value = res
   //   curTab.value = 0
@@ -115,12 +129,20 @@ const changePdf = (val,index,name) => {
 
 }
 const dbSelected = (val,name) => {
+  debugger
   fileName.value = name
+  iframeUrl.value = val
   // attch({ fileId: val }).then((res) => {
   //   iframeUrl.value = res
   // }).catch((err)=>{
   //   iframeUrl.value = 0
   // })
+  // previewDutyLog({ fileId: val }).then((res) => {
+  //   iframeUrl.value = res
+  // }).catch((err)=>{
+  //   iframeUrl.value = 0
+  // })
+  
 
 }
 

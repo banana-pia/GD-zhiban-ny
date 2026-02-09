@@ -26,3 +26,21 @@ export function dutyStatDesc(query) {
     data: query
   })
 }
+
+//获取值班日志
+export function dutyLog(query) {
+  return request({
+    url: '/dutylog/query',
+    method: 'POST',
+    data: query
+  })
+}
+//预览值班日志
+export function previewDutyLog(query) {
+  return request({
+    url: '/dutylog/download',
+    method: 'get',
+    params: query,
+    responseType: 'blob'
+  })
+}

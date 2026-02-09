@@ -231,36 +231,41 @@ const objectSpanMethod = ({ row, column, rowIndex, columnIndex, }) => {
 }
 //获取本周周一和周日数据
 const curWeek = () => {
-  var now = new Date();
-  var nowTime = now.getTime();
-  var day = now.getDay();
-  var oneDayTime = 24 * 60 * 60 * 1000;
-  //显示周一
-  var MondayTime = nowTime - (day - 1) * oneDayTime;
-  //显示周日
-  var SundayTime = nowTime + (7 - day) * oneDayTime;
-  //初始化日期时间
-  var monday = new Date(MondayTime);
-  var sunday = new Date(SundayTime);
+  var now = new Date()
+  var nowTime = now.getTime()
+  var day = now.getDay()
 
-  function add0(m) { return m < 10 ? '0' + m : m }
-  function format(shijianchuo) {
-    //shijianchuo是整数，否则要parseInt转换
-    var time = new Date(shijianchuo);
-    var y = time.getFullYear();
-    var m = time.getMonth() + 1;
-    var d = time.getDate();
-    //var h = time.getHours();
-    //var mm = time.getMinutes();
-    //var s = time.getSeconds();
-    return y + '-' + add0(m) + '-' + add0(d);
-    //return y+''+add0(m)+''+add0(d)+''+add0(h)+':'+add0(mm)+':'+add0(s);
+  // ✅ 关键修复：周日视为 7
+  day = day === 0 ? 7 : day
+
+  var oneDayTime = 24 * 60 * 60 * 1000
+
+  // 周一
+  var MondayTime = nowTime - (day - 1) * oneDayTime
+  // 周日
+  var SundayTime = nowTime + (7 - day) * oneDayTime
+
+  function add0(m) {
+    return m < 10 ? '0' + m : m
   }
+
+  function format(time) {
+    var d = new Date(time)
+    return (
+      d.getFullYear() +
+      '-' +
+      add0(d.getMonth() + 1) +
+      '-' +
+      add0(d.getDate())
+    )
+  }
+
   return {
-    monday: format(monday),
-    sunday: format(sunday)
+    monday: format(MondayTime),
+    sunday: format(SundayTime)
   }
 }
+
 //获取当日日期
 const getNowFormatDate = () => {
   let date = new Date(),

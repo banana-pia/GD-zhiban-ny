@@ -14,6 +14,9 @@
         style="width: 100%;height: 100% ">
         <el-table-column v-for="value in columns" :key="value.prop" :prop="value.prop" :label="value.label"
           :width="value.width">
+          <template #default="{ row }" v-if="value.soltName === 'deptName'">
+            <div class="dept-name" @click="openDio(row)">{{ row.dept_name }}</div>
+          </template>
           <template #default="{ row }" v-if="value.soltName === 'dutyTime'">
             <div v-if="row.start_time != row.end_time">{{ row.start_time }}<br /> ~ <br />{{ row.end_time }}</div>
             <div v-else>{{ row.start_time }}</div>
@@ -22,6 +25,36 @@
       </el-table>
     </div>
   </div>
+  <div class="dia-con">
+    <el-dialog v-model="dialogVisible">
+      <div>
+        <div class="dio-header">
+          <p>
+            <Discount style="width: 24px; height: 24px;margin: 18px 10px 10px 10px;" />
+          </p>
+          <p>
+            <!-- {{ dioTitle }} -->
+            人武部值班表
+          </p>
+        </div>
+        <div class="dio-body">
+          <el-table class="web-table" :data="tableDataLow" ref="tableRef" :span-method="spanMethod" border
+            style="width: 100%;height: 100% ">
+            <el-table-column v-for="value in columns" :key="value.prop" :prop="value.prop" :label="value.label"
+              :width="value.width">
+              <!-- <template #default="{ row }" v-if="value.soltName === 'deptName'">
+                <div class="dept-name" @click="openDio(row)">{{ row.dept_name }}</div>
+              </template> -->
+              <template #default="{ row }" v-if="value.soltName === 'dutyTime'">
+                <div v-if="row.start_time != row.end_time">{{ row.start_time }}<br /> ~ <br />{{ row.end_time }}</div>
+                <div v-else>{{ row.start_time }}</div>
+              </template>
+            </el-table-column>
+          </el-table>
+        </div>
+      </div>
+    </el-dialog>
+  </div>
 
 </template>
 
@@ -29,12 +62,36 @@
 import { ref, reactive, toRefs, onMounted } from 'vue'
 
 import { useRouter, useRoute } from 'vue-router'
+import { Discount, Message } from '@element-plus/icons-vue'
 
 import { dutyList } from '@/api/duty/dutyman'
 
 
 const router = useRouter()
 const route = useRoute()
+const allData = ref([])
+//------------------- 弹窗 -------------------
+const dialogVisible = ref(false)
+const tableDataLow = ref([])
+const openDio = (row) => {
+  dialogVisible.value = true
+  debugger
+  console.log('点击了部门：', row.dept_name)
+  all.value.forEach((item) => {
+    if (item.children.length) {
+      item.children.forEach((value) => {
+        Object.keys(value).forEach((val) => {
+          if (val != 'children' && val == row.dept_name) {
+            const list = flattenDatalist(value)
+            // const flat = flattenData(list)
+            const merged = mergeDutyByContinuousTime(list)
+            tableDataLow.value = calcDeptRowSpan(merged)
+          }
+        })
+      })
+    }
+  })
+}
 
 //------------------- 日期查询 -------------------
 const curDate = ref('')
@@ -58,9 +115,9 @@ const getList = (week) => {
 
   dutyList(params).then(res => {
     console.log('查询结果：', res)
+    allData.value = res
     const list = flattenDatalist(res)
     // const flat = flattenData(list)
-    debugger
     const merged = mergeDutyByContinuousTime(list)
     tableData.value = calcDeptRowSpan(merged)
   })
@@ -73,7 +130,7 @@ function flattenDatalist(source) {
       Object.keys(value).forEach((val) => {
         if (val != 'children') {
           // value[val].children = value.children
-          
+
           arr.push(...value[val])
         }
       })
@@ -104,67 +161,43 @@ function isContinuous(prevEnd, curStart) {
 }
 //合并人员时间
 function mergeDutyByContinuousTime(list) {
-  const groupMap = new Map()
+  const result = []
+  const lastMap = new Map()
 
-  // ① 先按 person + seat 分组
   list.forEach(item => {
     const key = `${item.person_id}_${item.seat_name}`
-    if (!groupMap.has(key)) {
-      groupMap.set(key, [])
-    }
-    groupMap.get(key).push(item)
-  })
+    const last = lastMap.get(key)
 
-  const result = []
-
-  // ② 每一组内部判断连续性
-  groupMap.forEach(group => {
-    // 按 start_time 排序
-    group.sort((a, b) =>
-      new Date(a.start_time) - new Date(b.start_time)
-    )
-
-    let current = null
-
-    group.forEach(item => {
-      if (!current) {
-        // 第一条
-        current = {
-          ...item,
-          _start: item.start_time,
-          _end: item.end_time,
-          _rowSpan: 1,
-          _isFirst: true
-        }
-        result.push(current)
-      } else if (isContinuous(current._end, item.start_time)) {
-        // 连续 → 合并
-        current._end =
-          current._end > item.end_time
-            ? current._end
-            : item.end_time
-        current._rowSpan++
-      } else {
-        // ❌ 不连续 → 新的一段
-        current = {
-          ...item,
-          _start: item.start_time,
-          _end: item.end_time,
-          _rowSpan: 1,
-          _isFirst: true
-        }
-        result.push(current)
+    if (
+      last &&
+      isContinuous(last._end, item.start_time)
+    ) {
+      // ✅ 连续（且是原始顺序下的连续）
+      last._end =
+        last._end > item.end_time ? last._end : item.end_time
+      last._rowSpan++
+    } else {
+      // ❌ 不连续（或第一次）
+      const row = {
+        ...item,
+        _start: item.start_time,
+        _end: item.end_time,
+        _rowSpan: 1,
+        _isFirst: true
       }
-    })
+      result.push(row)
+      lastMap.set(key, row)
+    }
   })
 
-  // ③ 补 duty_time
+  // 补 duty_time
   result.forEach(row => {
     row.duty_time = `${row._start} ~ ${row._end}`
   })
 
   return result
 }
+
 
 // function mergeDutyData(list) {
 //   const map = new Map()
@@ -212,19 +245,18 @@ function mergeDutyByContinuousTime(list) {
 //   return result
 // }
 //计算部门合并行数
+
 function calcDeptRowSpan(list) {
   let i = 0
 
   while (i < list.length) {
+    const dept = list[i].dept_name
     let count = 1
-    const currentDept = list[i].dept_name
 
-    for (let j = i + 1; j < list.length; j++) {
-      if (list[j].dept_name === currentDept) {
-        count++
-      } else {
-        break
-      }
+    let j = i + 1
+    while (j < list.length && list[j].dept_name === dept) {
+      count++
+      j++
     }
 
     // 第一行
@@ -244,39 +276,136 @@ function calcDeptRowSpan(list) {
 }
 
 
+
 //合并规则
 function spanMethod({ row, column }) {
-  // ① 部门列（第一列）
-  if (column.property === 'dept_name') {
+  // ① 部门维度合并的列
+  const DEPT_COLS = [
+    'dept_name',
+    'duty_team',
+    'person_num',
+    'leader',
+    'contact_phone'
+  ]
+
+  if (DEPT_COLS.includes(column.property)) {
+    const span = row._deptRowSpan
+
+    if (span === 0) {
+      return { rowspan: 0, colspan: 0 }
+    }
+
     return {
-      rowspan: row._deptRowSpan ?? 0,
-      colspan: row._deptRowSpan ? 1 : 0
+      rowspan: span || 1,
+      colspan: 1
     }
   }
 
-  // ② 人 + 席位相关列
+  // ② 人 + 席位 + 时间维度
   const PERSON_COLS = [
     'seat_name',
     'person_name',
     'person_type',
     'duty',
     'seat_phone',
-    'duty_time',
-    'duty_team',
-    'leader',
-    'contact_phone'
+    'duty_time'
   ]
 
   if (PERSON_COLS.includes(column.property)) {
+    const span = row._rowSpan
+
+    if (span === 0) {
+      return { rowspan: 0, colspan: 0 }
+    }
+
     return {
-      rowspan: row._rowSpan ?? 0,
-      colspan: row._rowSpan ? 1 : 0
+      rowspan: span || 1,
+      colspan: 1
     }
   }
 
-  // ③ 其他列：永远不合并
+  // ③ 其他列
   return { rowspan: 1, colspan: 1 }
 }
+
+
+// function spanMethod({ row, column }) {
+//   // ① 部门列（第一列）
+//   if (column.property === 'dept_name') {
+//     return {
+//       rowspan: row._deptRowSpan ?? 0,
+//       colspan: row._deptRowSpan ? 1 : 0
+//     }
+//   }
+
+//   // ② 人 + 席位相关列
+//   const PERSON_COLS = [
+//     'seat_name',
+//     'person_name',
+//     'person_type',
+//     'duty',
+//     'seat_phone',
+//     'duty_time',
+//     'duty_team',
+//     'leader',
+//     'contact_phone'
+//   ]
+
+//   if (PERSON_COLS.includes(column.property)) {
+//     return {
+//       rowspan: row._rowSpan ?? 0,
+//       colspan: row._rowSpan ? 1 : 0
+//     }
+//   }
+
+//   // ③ 其他列：永远不合并
+//   return { rowspan: 1, colspan: 1 }
+// }
+// function spanMethod({ row, column }) {
+//   // ① 部门列
+//   if (column.property === 'dept_name') {
+//     const span = row._deptRowSpan
+
+//     if (span === 0) {
+//       return { rowspan: 0, colspan: 0 }
+//     }
+
+//     return {
+//       rowspan: span || 1,
+//       colspan: 1
+//     }
+//   }
+
+//   // ② 人 + 席位相关列
+//   const PERSON_COLS = [
+//     'seat_name',
+//     'person_name',
+//     'person_type',
+//     'duty',
+//     'seat_phone',
+//     'duty_time',
+//     'duty_team',
+//     'leader',
+//     'contact_phone'
+//   ]
+
+//   if (PERSON_COLS.includes(column.property)) {
+//     const span = row._rowSpan
+
+//     if (span === 0) {
+//       return { rowspan: 0, colspan: 0 }
+//     }
+
+//     return {
+//       rowspan: span || 1,
+//       colspan: 1
+//     }
+//   }
+
+//   // ③ 其他列
+//   return { rowspan: 1, colspan: 1 }
+// }
+
 
 
 //获取周值班
@@ -293,7 +422,7 @@ const changeDate = (val) => {
 const tableData = ref([])
 const tableRef = ref(null)
 const columns = [
-  { prop: 'dept_name', label: '单位', width: 180 },
+  { prop: 'dept_name', label: '单位', width: 180, soltName: 'deptName' },
   { prop: 'seat_name', label: '席位名称' },
   { prop: 'person_name', label: '值班人员' },
   { prop: 'person_type', label: '类别' },
@@ -323,36 +452,41 @@ const objectSpanMethod = ({ row, column, rowIndex, columnIndex, }) => {
 }
 //获取本周周一和周日数据
 const curWeek = () => {
-  var now = new Date();
-  var nowTime = now.getTime();
-  var day = now.getDay();
-  var oneDayTime = 24 * 60 * 60 * 1000;
-  //显示周一
-  var MondayTime = nowTime - (day - 1) * oneDayTime;
-  //显示周日
-  var SundayTime = nowTime + (7 - day) * oneDayTime;
-  //初始化日期时间
-  var monday = new Date(MondayTime);
-  var sunday = new Date(SundayTime);
+  var now = new Date()
+  var nowTime = now.getTime()
+  var day = now.getDay()
 
-  function add0(m) { return m < 10 ? '0' + m : m }
-  function format(shijianchuo) {
-    //shijianchuo是整数，否则要parseInt转换
-    var time = new Date(shijianchuo);
-    var y = time.getFullYear();
-    var m = time.getMonth() + 1;
-    var d = time.getDate();
-    //var h = time.getHours();
-    //var mm = time.getMinutes();
-    //var s = time.getSeconds();
-    return y + '-' + add0(m) + '-' + add0(d);
-    //return y+''+add0(m)+''+add0(d)+''+add0(h)+':'+add0(mm)+':'+add0(s);
+  // ✅ 关键修复：周日视为 7
+  day = day === 0 ? 7 : day
+
+  var oneDayTime = 24 * 60 * 60 * 1000
+
+  // 周一
+  var MondayTime = nowTime - (day - 1) * oneDayTime
+  // 周日
+  var SundayTime = nowTime + (7 - day) * oneDayTime
+
+  function add0(m) {
+    return m < 10 ? '0' + m : m
   }
+
+  function format(time) {
+    var d = new Date(time)
+    return (
+      d.getFullYear() +
+      '-' +
+      add0(d.getMonth() + 1) +
+      '-' +
+      add0(d.getDate())
+    )
+  }
+
   return {
-    monday: format(monday),
-    sunday: format(sunday)
+    monday: format(MondayTime),
+    sunday: format(SundayTime)
   }
 }
+
 //获取当日日期
 const getNowFormatDate = () => {
   let date = new Date(),
@@ -446,12 +580,93 @@ onMounted(() => {
   >div:nth-child(2) {
     height: calc(100% - 86px);
   }
-  
+
 }
-.duty-bottom{
-  :deep(.el-input__wrapper){
+
+.duty-bottom {
+  :deep(.el-input__wrapper) {
     background: #091A69;
     box-shadow: 0 0 0 1px #354262 inset;
   }
-} 
+}
+
+.dept-name {
+  cursor: pointer;
+
+  &:hover {
+    color: #409EFF;
+  }
+}
+
+.dia-con {
+  :deep(.el-dialog) {
+    padding: 0px !important;
+    width: 90vw;
+    background: #00020c;
+    position: relative;
+    z-index: 999;
+    margin-top: 8vh;
+    // border: 1px solid #0E5BF6;
+
+    .el-dialog__header {
+      height: 0px;
+      padding: 0;
+    }
+
+    .el-dialog__headerbtn {
+      display: flex;
+    }
+
+    .el-dialog__close {
+      width: 32px;
+      height: 32px;
+      margin-top: 4px;
+      margin-left: 20px;
+      background: url('@/assets/images/close.png');
+      background-size: 28px 28px;
+      background-repeat: no-repeat;
+
+      >svg {
+        display: none;
+      }
+    }
+
+    .el-dialog__body {
+      padding: 0px;
+      margin: 0px;
+
+    }
+
+    .dio-header {
+      height: 40px;
+      background: url('@/assets/images/dio_header.png');
+      background-size: 125% 40px;
+      background-repeat: no-repeat;
+      display: flex;
+      justify-content: left;
+      align-items: center;
+
+      p {
+        color: #C5E6FF;
+        text-shadow: 1px 2px 3px #002164, 0px 0px 15px #3748FF;
+        font-family: "Alibaba PuHuiTi 3.0";
+        font-size: 22px;
+        font-style: normal;
+        font-weight: 700;
+        letter-spacing: 2.86px;
+      }
+
+    }
+
+    .dio-body {
+      // background: rgba(8, 14, 45, 0.90);
+      padding: 20px 40px;
+      box-sizing: border-box;
+      background: #000B40;
+      box-shadow: 0px 0px 15px 0px #0C52DF inset;
+      // width: 100%;
+      height: 80vh;
+    }
+  }
+}
 </style>
