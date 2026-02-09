@@ -21,6 +21,7 @@
             <p @click="changePdf(item.filePath,index,item.fileName)">{{ item.fileName }}</p>
             <p>{{ item.uploadTime }}</p>
           </div>
+          <div @click="downloadFile(item.filePath,item.fileName)"><el-icon><Download /></el-icon></div>
         </div>
       </div>
     </div>
@@ -32,6 +33,8 @@ import { ref, reactive, toRefs, onMounted } from 'vue'
 import { previewDutyLog, dutyLog } from '@/api/duty/dutyman.js'
 // import ShowPdf from '../../../components/showpdf.vue'
 import FilePreview  from '@/components/previewFile/index.vue'
+import { Download } from '@element-plus/icons-vue'
+import {ElMessage } from 'element-plus'
 
 
 onMounted(()=>{
@@ -99,6 +102,31 @@ const rightList = ref([
     label: "这该死的数据塞进这该死的页面"
   }
 ])
+//下载文件
+const downloadFile = async(filePath,fileName) => {
+  try {
+    // 调用下载接口获取文件 Blob
+    const response = await previewDutyLog(filePath)
+
+    const url = window.URL.createObjectURL(new Blob([response]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', fileName || '值班日志'); // 设置文件名
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+    // const response = await downloadDutyLog(row.filePath)
+
+    // 设置弹窗数据
+    // currentPdfBlob.value = response
+    // currentFileName.value = row.fileName
+    // pdfDialogVisible.value = true // 打开弹窗
+  } catch (error) {
+    console.error('文件加载失败:', error)
+    ElMessage.error('文件加载失败')
+  }
+}
 //获取列表数据
 const getList = () => {
   // let obj = {
@@ -129,7 +157,7 @@ const changePdf = (val,index,name) => {
 
 }
 const dbSelected = (val,name) => {
-  debugger
+  
   fileName.value = name
   iframeUrl.value = val
   // attch({ fileId: val }).then((res) => {
@@ -242,7 +270,7 @@ const dbSelected = (val,name) => {
     overflow-y: auto;
 
     >div {
-     
+      position: relative;
       display: flex;
       justify-content: left;
       align-items: center;

@@ -1,11 +1,11 @@
 <template>
   <div class="preview-page">
     <!-- 顶部工具栏 -->
-    <div class="toolbar">
+    <!-- <div class="toolbar">
       <el-button type="primary" @click="download" :disabled="!fileBlob">
         下载
       </el-button>
-    </div>
+    </div> -->
 
     <!-- 内容区 -->
     <div class="content">
@@ -41,13 +41,12 @@ const loading = ref(true)
 const fileBlob = ref(null)
 
 const previewComponent = computed(() => {
-  if (fileType === 'pdf') return PdfPreview
-  if (fileType === 'docx') return DocxPreview
-  return null
+  if (fileType.value === 'pdf') return PdfPreview
+  return DocxPreview
+  // return null
 })
 
 const loadFile = async () => {
-  debugger
   if(! props.iframeUrl) {
     loading.value = false
     return
@@ -55,8 +54,9 @@ const loadFile = async () => {
   loading.value = true
   props.iframeUrl.split('.').pop().toLowerCase() === 'pdf' ? fileType.value = 'pdf' : fileType.value = 'docx'
   try {
-    const res = await previewDutyLog({path:props.iframeUrl})
+    const res = await previewDutyLog(props.iframeUrl)
     fileBlob.value = res
+    debugger
   } finally {
     loading.value = false
   }
@@ -66,7 +66,7 @@ const download = () => {
   const url = URL.createObjectURL(fileBlob.value)
   const a = document.createElement('a')
   a.href = url
-  a.download = propsData.name || 'file'
+  a.download = props.name || 'file'
   a.click()
   URL.revokeObjectURL(url)
 }

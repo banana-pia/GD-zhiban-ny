@@ -38,9 +38,9 @@ export function dutyLog(query) {
 //预览值班日志
 export function previewDutyLog(query) {
   return request({
-    url: '/dutylog/download',
+    url: `/dutylog/download?path=${query}`,
     method: 'get',
-    params: query,
+    // params: query,
     responseType: 'blob'
   })
 }

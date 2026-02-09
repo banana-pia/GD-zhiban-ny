@@ -3,7 +3,7 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, watch ,nextTick} from 'vue'
 import { renderAsync } from 'docx-preview'
 
 const props = defineProps({
@@ -12,9 +12,12 @@ const props = defineProps({
 
 const container = ref(null)
 
-const renderDocx = async () => {
-  container.value.innerHTML = ''
+const renderDocx =  () => {
+  nextTick(async()=>{
+     container.value.innerHTML = ''
   await renderAsync(props.blob, container.value)
+  })
+ 
 }
 
 watch(() => props.blob, renderDocx, { immediate: true })
