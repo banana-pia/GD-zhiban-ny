@@ -53,7 +53,9 @@
       style="width: 100%"
     >
       <el-table-column prop="personName" label="值班人员" />
+      <el-table-column prop="personType" label="人员类别" />
       <el-table-column prop="deptName" label="单位" />
+      <el-table-column prop="duty" label="职务" />
       <el-table-column prop="dutyTeam" label="值班分队" />
       <el-table-column prop="startTime" label="开始时间" />
       <el-table-column prop="endTime" label="结束时间" />
@@ -107,8 +109,8 @@
         :rules="rules"
         label-width="100px"
       >
-        <el-form-item label="值班人员" prop="personId">
-          <el-select 
+        <el-form-item label="值班人员" prop="personName">
+          <!-- <el-select 
             v-model="formData.personId" 
             placeholder="请选择值班人员"
             style="width: 100%"
@@ -118,6 +120,21 @@
               :key="person.id"
               :label="person.label"
               :value="person.value"
+            />
+          </el-select> -->
+          <el-input v-model="formData.personName" />
+        </el-form-item>
+        <el-form-item label="人员类别" prop="personType">
+          <el-select 
+            v-model="formData.personType" 
+            placeholder="请选择人员类型"
+            style="width: 100%"
+          >
+            <el-option
+              v-for="seat in typeOptions"
+              :key="seat.id"
+              :label="seat.label"
+              :value="seat.value"
             />
           </el-select>
         </el-form-item>
@@ -132,6 +149,10 @@
             placeholder="选择单位"
             check-strictly
            />
+        </el-form-item>
+
+        <el-form-item label="席位电话" prop="duty">
+          <el-input v-model="formData.duty" />
         </el-form-item>
 
         <el-form-item label="值班席位" prop="seatName">
@@ -254,11 +275,16 @@ const seatOptions = ref([
   { id: 4, label: '副值班员', value: '副值班员' }
 ])
 
+const typeOptions = ref([
+  { id: 1, label: '现役', value: '现役' },
+  { id: 2, label: '文职', value: '文职' },
+])
+
 /* 表格数据（后期换接口） */
 const tableData = ref([
   {
     id: 1,
-    personId: '张三',
+    personName: '张三',
     deptId: '单位A',
     dutyTeam: '一小队',
     startTime: '2026-02-01 08:00:00',
@@ -267,7 +293,9 @@ const tableData = ref([
     seatName: '1号席位',
     seatPhone: '010-12345678',
     leader: '李四',
-    contactPhone: '13800138000'
+    contactPhone: '13800138000',
+    personType: '现役',
+    duty: '部长'
   }
 ])
 
@@ -311,19 +339,21 @@ const handleSearch = () => {
     pageSize: pageSize.value,
     ...searchForm
   }).then(res => {
-     tableData.value = res.list.map(item => {
-      // 根据 personId 查找对应的人员名称
-      const matchedPerson = personnelOptions.value.find(person => person.id === item.personId)
-      const matchedDept = deptOptions1.value.find(dept => dept.deptId === item.deptId)
-      // 返回新对象，包含原有字段和新增的 personName 字段
-      return {
-        ...item,
-        personName: matchedPerson ? matchedPerson.label : '未知人员' ,// 默认值处理
-        deptName: matchedDept ? matchedDept.deptName : '未知单位'
-      }
-    })
+    //  tableData.value = res.list.map(item => {
+    //   // 根据 personId 查找对应的人员名称
+    //   const matchedPerson = personnelOptions.value.find(person => person.id === item.personId)
+    //   const matchedDept = deptOptions1.value.find(dept => dept.deptId === item.deptId)
+    //   // 返回新对象，包含原有字段和新增的 personName 字段
+    //   return {
+    //     ...item,
+    //     personName: matchedPerson ? matchedPerson.label : '未知人员' ,// 默认值处理
+    //     deptName: matchedDept ? matchedDept.deptName : '未知单位'
+    //   }
+    // })
+    tableData.value = res.list
     currentPage.value = res.pageNum
     pageSize.value = res.pageSize
+    total.value = res.total
   })
   // 调接口
 }
@@ -341,7 +371,7 @@ const dialogTitle = ref('新增值班人员')
 const formRef = ref(null)
 const formData = reactive({
   id: null,
-  personId: '',
+  personName: '',
   deptId: '',
   seatName: '',
   seatPhone: '',
@@ -350,12 +380,15 @@ const formData = reactive({
   dutyTeam: '',
   personNum: '',
   startTime: '',
-  endTime: ''
+  endTime: '',
+    personType: '',
+    duty: ''
+    
 })
 
 /* 校验规则 */
 const rules = {
-  personId: [{ required: true, message: '请选择值班人员', trigger: 'change' }],
+  personName: [{ required: true, message: '请选择值班人员', trigger: 'change' }],
   deptId: [{ required: true, message: '请输入单位', trigger: 'blur' }],
   seatName: [{ required: true, message: '请选择值班席位', trigger: 'change' }],
   seatPhone: [{ required: true, message: '请输入席位电话', trigger: 'blur' }],
@@ -378,7 +411,7 @@ const openAddDialog = () => {
   dialogTitle.value = '新增值班人员'
   Object.assign(formData, {
     id: null,
-    personId: '',
+    personName: '',
     deptId: '',
     seatName: '',
     seatPhone: '',
@@ -387,7 +420,9 @@ const openAddDialog = () => {
     dutyTeam: '',
     personNum: '',
     startTime: '',
-    endTime: ''
+    endTime: '',
+    personType: '',
+    duty: ''
   })
   dialogVisible.value = true
 }

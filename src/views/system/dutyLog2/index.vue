@@ -55,7 +55,7 @@
             link
             @click="showDetails(row)"
           >
-            详情
+            下载
           </el-button>
           <el-button
             type="danger"
@@ -182,6 +182,7 @@ const handleFileUpload = async (event) => {
 
       // 调用 API
       const response = await saveDutyLog(formData).then(res => { 
+        console.log('上传成功', res)
         getFilesList()
 });
 
@@ -205,17 +206,17 @@ const handleFileUpload = async (event) => {
 const showDetails = async (row) => {
   try {
     // 调用下载接口获取文件 Blob
-    // const response = await downloadDutyLog(row.filePath)
-
-    // const url = window.URL.createObjectURL(new Blob([response]));
-    // const link = document.createElement('a');
-    // link.href = url;
-    // link.setAttribute('download', row.fileName || 'download'); // 设置文件名
-    // document.body.appendChild(link);
-    // link.click();
-    // link.remove();
-    // window.URL.revokeObjectURL(url);
     const response = await downloadDutyLog(row.filePath)
+
+    const url = window.URL.createObjectURL(new Blob([response]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', row.fileName || 'download'); // 设置文件名
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+    // const response = await downloadDutyLog(row.filePath)
 
     // 设置弹窗数据
     // currentPdfBlob.value = response
