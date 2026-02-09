@@ -55,7 +55,7 @@
             link
             @click="showDetails(row)"
           >
-            详情
+            下载
           </el-button>
           <el-button
             type="danger"
@@ -78,6 +78,8 @@ import { ref, reactive,onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { saveDutyLog, queryDutyLog, deleteDutyLog, downloadDutyLog } from '@/api/duty'
 import ShowPdf from '@/components/showpdf.vue'
+import useUserStore from '@/store/modules/user'
+const userStore = useUserStore()
 
 const pdfDialogVisible = ref(false)
 const currentPdfBlob = ref(null)
@@ -174,12 +176,13 @@ const handleFileUpload = async (event) => {
       formData.append('uploadTime', uploadTime);
       // const uploadTime = new Date().toISOString().replace(/\.(\d{3})Z$/, ''); ; // 输出: "2026-02-05T14:00:34.123Z"
       // formData.append('uploadTime', uploadTime);
-      formData.append('uploader', '当前用户');
+      formData.append('uploader', userStore.nickName);
       console.log('上传参数', formData);
       debugger
 
       // 调用 API
       const response = await saveDutyLog(formData).then(res => { 
+        console.log('上传成功', res)
         getFilesList()
 });
 
@@ -203,17 +206,17 @@ const handleFileUpload = async (event) => {
 const showDetails = async (row) => {
   try {
     // 调用下载接口获取文件 Blob
-    // const response = await downloadDutyLog(row.filePath)
-
-    // const url = window.URL.createObjectURL(new Blob([response]));
-    // const link = document.createElement('a');
-    // link.href = url;
-    // link.setAttribute('download', row.fileName || 'download'); // 设置文件名
-    // document.body.appendChild(link);
-    // link.click();
-    // link.remove();
-    // window.URL.revokeObjectURL(url);
     const response = await downloadDutyLog(row.filePath)
+
+    const url = window.URL.createObjectURL(new Blob([response]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', row.fileName || 'download'); // 设置文件名
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+    // const response = await downloadDutyLog(row.filePath)
 
     // 设置弹窗数据
     // currentPdfBlob.value = response

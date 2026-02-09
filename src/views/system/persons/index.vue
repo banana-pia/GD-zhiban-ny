@@ -116,7 +116,7 @@
         <el-form-item label="人员类别" prop="personType">
           <el-select 
             v-model="formData.personType" 
-            placeholder="请选择值班席位"
+            placeholder="请选择人员类型"
             style="width: 100%"
           >
             <el-option
