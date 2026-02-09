@@ -151,7 +151,7 @@
            />
         </el-form-item>
 
-        <el-form-item label="席位电话" prop="duty">
+        <el-form-item label="职位" prop="duty">
           <el-input v-model="formData.duty" />
         </el-form-item>
 
