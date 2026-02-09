@@ -56,6 +56,7 @@
       <el-table-column prop="taskTimeRange" label="任务起止时间" />
       <el-table-column prop="days" label="任务天数" />
       <el-table-column prop="participantCount" label="执行任务人数" />
+      <el-table-column prop="participantPersonType" label="执行任务人员类型" />
       <el-table-column prop="specificTask" label="具体任务" />
       <el-table-column prop="executionArea" label="执行任务地域" />
       <el-table-column prop="approveUnit" label="批准用兵单位" />
@@ -229,7 +230,20 @@
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <!-- 占位空列，如果需要 -->
+            <el-form-item label="人员类别" prop="participantPersonType">
+              <el-select 
+                v-model="formData.participantPersonType" 
+                placeholder="请选择人员类型"
+                style="width: 100%"
+              >
+                <el-option
+                  v-for="seat in seatOptions"
+                  :key="seat.id"
+                  :label="seat.label"
+                  :value="seat.value"
+                />
+              </el-select>
+            </el-form-item>
           </el-col>
         </el-row>
       </el-form>
@@ -274,6 +288,12 @@ const searchForm = reactive({
   taskName: ''
 })
 
+const seatOptions = ref([
+  { id: 1, label: '现役', value: '现役' },
+  { id: 2, label: '文职', value: '文职' },
+  { id: 3, label: '民兵', value: '民兵' },
+])
+
 /* 表格数据（后期换接口） */
 const tableData = ref([
   {
@@ -292,7 +312,8 @@ const tableData = ref([
   approveUnit: '军区司令部',             // 批准用兵单位
   approveFileName: '军令字第2024001号',  // 批准用兵文件名称
   fileNumber: '军字[2024]第001号',       // 发文字号
-  month: '2024-01'              
+  month: '2024-01' ,   
+  participantPersonType: '',          
   }
 ])
 
@@ -351,6 +372,7 @@ const formData = reactive({
   approveFileName: '',          // 批准用兵文件名称
   fileNumber: '',                // 发文字号
   month:'',
+  participantPersonType: '',
 })
 
 /* 校验规则 */
@@ -434,6 +456,7 @@ const openAddDialog = () => {
   approveFileName: '',          // 批准用兵文件名称
   fileNumber: '' ,               // 发文字号
   month:'',
+  participantPersonType: '',
   })
   dialogVisible.value = true
 }
