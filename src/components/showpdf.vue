@@ -5,7 +5,10 @@
     </div>
     <div v-if="pdfSource"  id="vue-pdf-view">
       <div id="page-view">
-        <VuePdfEmbed :page="currentPage"  @loaded="onPdfLoaded" text-layer :source="pdfSource"></VuePdfEmbed>
+        <!-- <VuePdfEmbed v-if="docuCype == 'pdf'" :page="currentPage"  @loaded="onPdfLoaded" text-layer :source="pdfSource"></VuePdfEmbed> -->
+        <iframe :src="pdfSource" width="100%" height="100%" frameborder="0" style="border: none;" />
+        <!-- <div v-if="docuCype == 'docx'" v-html="pdfSource"></div> -->
+
       </div>
     </div>
     <!-- <div class="pdf-controls" v-if="pdfSource">
@@ -23,9 +26,12 @@
 import { defineProps, onBeforeMount, onMounted, ref, watch } from 'vue';
 //引入vue-pdf
 import VuePdfEmbed from 'vue-pdf-embed'
+import mammoth from 'mammoth'
 
 import 'vue-pdf-embed/dist/styles/annotationLayer.css'
 import 'vue-pdf-embed/dist/styles/textLayer.css'
+
+import { previewDutyLog } from '@/api/duty/dutyman.js'
 
 // either URL, Base64, binary, or document proxy
 // 解决部分文字不显示的问题
@@ -35,6 +41,29 @@ const propsData = defineProps(['iframeUrl','name']);
 const totalPages = ref(0)
 const currentPage = ref(1)
 const pdfSource = ref('')
+const docuCype = ref('pdf')
+
+//预览图片
+const previewImg = async(url) => {
+  // const res = await fetch('/documents/zbjb.docx')
+  // const arrayBuffer = await res.arrayBuffer()
+
+  // const result = await mammoth.convertToHtml({ arrayBuffer })
+  // pdfSource.value = result.value
+  fetch('/documents/zbjb.pdf') // public 目录下
+  .then(res => {
+      if (!res.ok) throw new Error('PDF 加载失败')
+      return res.blob()
+    })
+    .then(blob => {
+      // Blob → URL
+      pdfSource.value = URL.createObjectURL(blob)
+    })
+    .catch(err => {
+      console.error('PDF 加载错误:', err)
+      pdfSource.value = ''
+    })
+}
 
 
 const blobToBase64 = (blob) => {
@@ -104,10 +133,9 @@ watch(
   (val) => {
     currentPage.value = 1
     if (val) {
-      blobToBase64(val).then((res) => {
-        
-        pdfSource.value = res
-      })
+     val.split('.').pop().toLowerCase() === 'pdf' ? docuCype.value = 'pdf' : docuCype.value = 'docx'
+
+      previewImg(val)
     }else{
        pdfSource.value = ''
     }

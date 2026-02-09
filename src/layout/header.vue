@@ -9,7 +9,7 @@
           <div>{{ curTime }}</div>
           <div>{{ title }}</div>
           <div>
-            <!-- <p class="">国防动员领导管理系统</p> -->
+            <p class="title-all">国防动员领导管理系统</p>
             <UserDropdown />
           </div>
         </div>
@@ -204,6 +204,17 @@ watch(
       position: absolute;
       right: 20px;
       top: 12px;
+      display: flex;
+      align-items: center;
+      .title-all {
+        color: #8DC8FB;
+        text-align: center;
+        font-family: "Alibaba PuHuiTi 3.0";
+        font-size: 24px;
+        font-weight: 700;
+        padding: 0;
+        margin: 0 20px 0 0;
+      }
     }
 
   }
