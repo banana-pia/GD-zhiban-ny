@@ -62,10 +62,12 @@
       <el-table-column prop="seatPhone" label="席位电话" />
       <el-table-column prop="leader" label="负责人" />
       <el-table-column prop="contactPhone" label="联系人电话" />
+      <el-table-column prop="status" label="审核状态" />
 
       <el-table-column label="操作" width="160" fixed="right">
         <template #default="{ row }">
           <el-button
+          v-if="row.canAudit"
             type="primary"
             link
             @click="pass(row)"
@@ -73,11 +75,30 @@
             通过
           </el-button>
           <el-button
+          v-if="row.canAudit"
             type="danger"
             link
             @click="veto(row)"
           >
-            否决
+            驳回
+          </el-button>
+          <el-button
+          v-if="!row.canAudit"
+            type="primary"
+            link
+            disabled
+            :style="{ color: 'gray', cursor: 'not-allowed' }"
+          >
+            通过
+          </el-button>
+          <el-button
+          v-if="!row.canAudit"
+            type="danger"
+            link
+            disabled
+            :style="{ color: 'gray', cursor: 'not-allowed' }"
+          >
+            驳回
           </el-button>
         </template>
       </el-table-column>
@@ -181,7 +202,29 @@ const getApproveList = () => {
     pageNum: currentPage.value,
     pageSize: pageSize.value,
   }).then(res => {
-     tableData.value = res.list
+     tableData.value = res.list.map(item => {
+  // 判断 auditStatus 并设置 status 字段
+  let status = '';
+  switch (item.auditStatus) {
+    case 0:
+      status = '未审核';
+      break;
+    case 1:
+      status = '审核通过';
+      break;
+    case -1:
+      status = '未通过';
+      break;
+    default:
+      status = '未知状态';
+  }
+
+  // 返回新对象，包含原有字段和新增的 status 字段
+  return {
+    ...item,
+    status
+  };
+});
     currentPage.value = res.pageNum
     pageSize.value = res.pageSize
     total.value = res.total
