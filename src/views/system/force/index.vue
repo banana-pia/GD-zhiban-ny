@@ -53,7 +53,9 @@
       <el-table-column prop="deptName" label="需求单位" />
       <el-table-column prop="taskType" label="任务类型" />
       <el-table-column prop="month" label="月份" />
-      <el-table-column prop="taskTimeRange" label="任务起止时间" />
+      <!-- <el-table-column prop="taskTimeRange" label="任务起止时间" /> -->
+      <el-table-column prop="taskTimeStart" label="开始时间" />
+      <el-table-column prop="taskTimeEnd" label="结束时间" />
       <el-table-column prop="days" label="任务天数" />
       <el-table-column prop="participantCount" label="执行任务人数" />
       <el-table-column prop="participantPersonType" label="执行任务人员类型" />
@@ -161,25 +163,23 @@
 
         <el-row :gutter="10">
           <el-col :span="12">
-            <el-form-item label="起止时间" prop="taskTimeRange">
-              <!-- <el-date-picker
-                v-model="formData.endTime"
-                type="date"
-                value-format="YYYY-MM-DD"
-              /> -->
+            <el-form-item label="开始时间" prop="taskTimeStart">
               <el-date-picker
-                v-model="formData.taskTimeRange"
-                type="daterange"
-                range-separator="至"
-                start-placeholder="开始日期"
-                end-placeholder="结束日期"
-                value-format="YYYY-MM-DD"
+                v-model="formData.taskTimeStart"
+                placeholder="开始时间"
+                type="datetime"
+                value-format="YYYY-MM-DD HH:mm:ss"
               />
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="任务天数" prop="days">
-              <el-input v-model="formData.days" />
+            <el-form-item label="结束时间" prop="taskTimeEnd">
+              <el-date-picker
+                v-model="formData.taskTimeEnd"
+                placeholder="结束时间"
+                type="datetime"
+                value-format="YYYY-MM-DD HH:mm:ss"
+              />
             </el-form-item>
           </el-col>
         </el-row>
@@ -230,7 +230,10 @@
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="人员类别" prop="participantPersonType">
+            <el-form-item label="任务天数" prop="days">
+              <el-input v-model="formData.days" />
+            </el-form-item>
+            <!-- <el-form-item label="人员类别" prop="participantPersonType">
               <el-select 
                 v-model="formData.participantPersonType" 
                 placeholder="请选择人员类型"
@@ -243,7 +246,7 @@
                   :value="seat.value"
                 />
               </el-select>
-            </el-form-item>
+            </el-form-item> -->
           </el-col>
         </el-row>
       </el-form>
@@ -313,7 +316,9 @@ const tableData = ref([
   approveFileName: '军令字第2024001号',  // 批准用兵文件名称
   fileNumber: '军字[2024]第001号',       // 发文字号
   month: '2024-01' ,   
-  participantPersonType: '',          
+  participantPersonType: '民兵', 
+  taskTimeStart:'2024-01-15 10:00:00', 
+  taskTimeEnd:'2024-01-20 10:00:00',        
   }
 ])
 
@@ -372,7 +377,9 @@ const formData = reactive({
   approveFileName: '',          // 批准用兵文件名称
   fileNumber: '',                // 发文字号
   month:'',
-  participantPersonType: '',
+  participantPersonType: '民兵',
+  taskTimeStart:'', 
+  taskTimeEnd:'', 
 })
 
 /* 校验规则 */
@@ -433,7 +440,12 @@ const rules = {
   ],
   commanderInfo: [
     { required: true, message: '请输入指挥员姓名职务以及联系方式', trigger: 'blur' }
-  ]
+  ],
+  participantPersonType: [
+    { required: true, message: '请选择人员类别', trigger: 'blur' }
+  ],
+  taskTimeStart: [{ required: true, message: '请选择开始时间', trigger: 'change' }],
+  taskTimeEnd: [{ required: true, message: '请选择结束时间', trigger: 'change' }]
 }
 
 /* 新增 */
@@ -456,7 +468,9 @@ const openAddDialog = () => {
   approveFileName: '',          // 批准用兵文件名称
   fileNumber: '' ,               // 发文字号
   month:'',
-  participantPersonType: '',
+  participantPersonType: '民兵',
+  taskTimeStart:'', 
+  taskTimeEnd:'', 
   })
   dialogVisible.value = true
 }
@@ -499,6 +513,7 @@ const editRow = (row) => {
   debugger
   dialogTitle.value = '修改值班信息'
   Object.assign(formData, row)
+  // formData.taskTimeRange = formData.taskTimeRange.split(" - ");
   dialogVisible.value = true
 }
 
@@ -508,7 +523,7 @@ const submitForm = () => {
     if (!valid) return
 
     if (formData.id) {
-      formData.taskTimeRange = formData.taskTimeRange.join(' - ')
+      // formData.taskTimeRange = formData.taskTimeRange.join(' - ')
       debugger
       let params = { ...formData }
       saveMilitia(params).then(res => {

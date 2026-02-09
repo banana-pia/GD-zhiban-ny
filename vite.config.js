@@ -2,8 +2,8 @@ import { defineConfig, loadEnv } from 'vite'
 import path from 'path'
 import createVitePlugins from './vite/plugins'
 
-// const baseUrl = 'http://192.168.102.248:9099' // 后端服务器接口
-const baseUrl = 'http://192.168.102.230:9099/' // 九成本地后端接口
+const baseUrl = 'http://192.168.102.248:9099' // 后端服务器接口
+// const baseUrl = 'http://192.168.102.230:9099/' // 九成本地后端接口
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode, command }) => {
