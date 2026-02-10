@@ -206,8 +206,8 @@
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="指挥单位" prop="commandUnit">
-              <el-input v-model="formData.commandUnit" />
+            <el-form-item label="具体任务" prop="specificTask">
+              <el-input v-model="formData.specificTask" />
             </el-form-item>
           </el-col>
         </el-row>
@@ -243,10 +243,11 @@
         <el-row :gutter="10">
           
           <el-col :span="12">
-            <el-form-item label="具体任务" prop="specificTask">
-              <el-input v-model="formData.specificTask" />
+            <el-form-item label="指挥单位" prop="commandUnit">
+              <el-input v-model="formData.commandUnit" />
             </el-form-item>
           </el-col>
+          
           <el-col :span="12">
             <el-form-item label="指挥员姓名职务以及联系方式" prop="commanderInfo">
               <el-input v-model="formData.commanderInfo" />
@@ -400,10 +401,10 @@ const rules = {
     { required: true, message: '请输入任务来源', trigger: 'blur' }
   ],
   demandUnitDivision: [
-    { required: true, message: '请输入需求单位（师单位）', trigger: 'blur' }
+    { required: true, message: '请输入需求单位', trigger: 'blur' }
   ],
   deptId: [
-    { required: true, message: '请输入需求单位', trigger: 'blur' }
+    { required: true, message: '请输入需求单位（师单位）', trigger: 'blur' }
   ],
   taskType: [
     { required: true, message: '请输入任务类型', trigger: 'blur' }
