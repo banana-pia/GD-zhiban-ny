@@ -427,11 +427,11 @@ const rules = {
   ],
   days: [
     { required: true, message: '请输入任务天数', trigger: 'blur' },
-    { pattern: /^\d+$/, message: '请输入有效数字', trigger: 'blur' }
+    // { pattern: /^\d+$/, message: '请输入有效数字', trigger: 'blur' }
   ],
   participantCount: [
     { required: true, message: '请输入执行任务人数', trigger: 'blur' },
-    { pattern: /^\d+$/, message: '请输入有效数字', trigger: 'blur' }
+    // { pattern: /^\d+$/, message: '请输入有效数字', trigger: 'blur' }
   ],
   specificTask: [
     { required: true, message: '请输入具体任务', trigger: 'blur' }
