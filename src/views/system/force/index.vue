@@ -49,21 +49,22 @@
     >
       <el-table-column prop="taskName" label="任务名称" />
       <el-table-column prop="taskSource" label="任务来源" />
+      <el-table-column prop="taskType" label="任务类型" />
       <el-table-column prop="demandUnitDivision" label="需求单位（师单位）" />
       <el-table-column prop="deptName" label="需求单位" />
-      <el-table-column prop="taskType" label="任务类型" />
       <el-table-column prop="month" label="月份" />
-      <!-- <el-table-column prop="taskTimeRange" label="任务起止时间" /> -->
       <el-table-column prop="taskTimeStart" label="开始时间" />
       <el-table-column prop="taskTimeEnd" label="结束时间" />
       <el-table-column prop="days" label="任务天数" />
       <el-table-column prop="participantCount" label="执行任务人数" />
+      <el-table-column prop="personDays" label="人·天" />
       <el-table-column prop="participantPersonType" label="执行任务人员类型" />
       <el-table-column prop="specificTask" label="具体任务" />
       <el-table-column prop="executionArea" label="执行任务地域" />
       <el-table-column prop="approveUnit" label="批准用兵单位" />
       <el-table-column prop="approveFileName" label="批准用兵文件名称" />
       <el-table-column prop="fileNumber" label="发文字号" />
+      <el-table-column prop="commandUnit" label="指挥单位" />
       <el-table-column prop="commanderInfo" label="指挥员姓名职务以及联系方式" />
 
       <el-table-column label="操作" width="160" fixed="right">
@@ -101,6 +102,7 @@
       :title="dialogTitle"
       v-model="dialogVisible"
       width="800px"
+      :close-on-click-modal="false"
     >
       <el-form
         ref="formRef"
@@ -124,15 +126,15 @@
 
         <el-row :gutter="10">
           <el-col :span="12">
-            <el-form-item label="需求单位（师单位）" prop="demandUnitDivision">
-              <el-input v-model="formData.demandUnitDivision" />
+            <el-form-item label="需求单位" prop="deptId">
+              <el-input v-model="formData.deptId" />
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="需求单位" prop="deptId">
+            <el-form-item label="需求单位（师）" prop="demandUnitDivision">
               <!-- <el-input v-model="formData.deptId" /> -->
             <el-tree-select
-              v-model="formData.deptId"
+              v-model="formData.demandUnitDivision"
               :data="deptOptions"
               :props="{ value: 'deptId', label: 'deptName', children: 'children' }"
               value-key="deptId"
@@ -153,7 +155,7 @@
             <el-form-item label="月份" prop="month">
               <el-date-picker
                 v-model="formData.month"
-                type="date"
+                type="month"
                 value-format="YYYY-MM"
                 placeholder="请选择月份"
               />
@@ -191,8 +193,21 @@
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="具体任务" prop="specificTask">
-              <el-input v-model="formData.specificTask" />
+            <el-form-item label="任务天数" prop="days">
+              <el-input v-model="formData.days" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+
+        <el-row :gutter="10">
+          <el-col :span="12">
+            <el-form-item label="人·天" prop="personDays">
+              <el-input v-model="formData.personDays" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="指挥单位" prop="commandUnit">
+              <el-input v-model="formData.commandUnit" />
             </el-form-item>
           </el-col>
         </el-row>
@@ -223,30 +238,19 @@
           </el-col>
         </el-row>
 
+        
+
         <el-row :gutter="10">
+          
+          <el-col :span="12">
+            <el-form-item label="具体任务" prop="specificTask">
+              <el-input v-model="formData.specificTask" />
+            </el-form-item>
+          </el-col>
           <el-col :span="12">
             <el-form-item label="指挥员姓名职务以及联系方式" prop="commanderInfo">
               <el-input v-model="formData.commanderInfo" />
             </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="任务天数" prop="days">
-              <el-input v-model="formData.days" />
-            </el-form-item>
-            <!-- <el-form-item label="人员类别" prop="participantPersonType">
-              <el-select 
-                v-model="formData.participantPersonType" 
-                placeholder="请选择人员类型"
-                style="width: 100%"
-              >
-                <el-option
-                  v-for="seat in seatOptions"
-                  :key="seat.id"
-                  :label="seat.label"
-                  :value="seat.value"
-                />
-              </el-select>
-            </el-form-item> -->
           </el-col>
         </el-row>
       </el-form>
@@ -318,7 +322,9 @@ const tableData = ref([
   month: '2024-01' ,   
   participantPersonType: '民兵', 
   taskTimeStart:'2024-01-15 10:00:00', 
-  taskTimeEnd:'2024-01-20 10:00:00',        
+  taskTimeEnd:'2024-01-20 10:00:00',
+  personDays: '5',  
+  commandUnit: '第一师',      
   }
 ])
 
@@ -380,6 +386,9 @@ const formData = reactive({
   participantPersonType: '民兵',
   taskTimeStart:'', 
   taskTimeEnd:'', 
+  personDays: '',
+  commandUnit: '',
+  
 })
 
 /* 校验规则 */
@@ -445,7 +454,14 @@ const rules = {
     { required: true, message: '请选择人员类别', trigger: 'blur' }
   ],
   taskTimeStart: [{ required: true, message: '请选择开始时间', trigger: 'change' }],
-  taskTimeEnd: [{ required: true, message: '请选择结束时间', trigger: 'change' }]
+  taskTimeEnd: [{ required: true, message: '请选择结束时间', trigger: 'change' }],
+  personDays: [
+    { required: true, message: '请输入人员天数', trigger: 'blur' },
+    { pattern: /^\d+$/, message: '请输入有效的整数', trigger: 'blur' }
+  ],
+  commandUnit: [
+    { required: true, message: '请输入指挥单位', trigger: 'blur' }
+  ],
 }
 
 /* 新增 */
@@ -471,6 +487,8 @@ const openAddDialog = () => {
   participantPersonType: '民兵',
   taskTimeStart:'', 
   taskTimeEnd:'', 
+  personDays: '', 
+  commandUnit: '',       
   })
   dialogVisible.value = true
 }

@@ -102,6 +102,7 @@
       :title="dialogTitle"
       v-model="dialogVisible"
       width="500px"
+      :close-on-click-modal="false"
     >
       <el-form
         ref="formRef"
@@ -110,18 +111,6 @@
         label-width="100px"
       >
         <el-form-item label="值班人员" prop="personName">
-          <!-- <el-select 
-            v-model="formData.personId" 
-            placeholder="请选择值班人员"
-            style="width: 100%"
-          >
-            <el-option
-              v-for="person in personnelOptions"
-              :key="person.id"
-              :label="person.label"
-              :value="person.value"
-            />
-          </el-select> -->
           <el-input v-model="formData.personName" />
         </el-form-item>
         <el-form-item label="人员类别" prop="personType">
@@ -174,9 +163,7 @@
           <el-input v-model="formData.seatPhone" />
         </el-form-item>
 
-        <el-form-item label="负责人" prop="leader">
-          <el-input v-model="formData.leader" />
-        </el-form-item>
+        
 
         <el-form-item label="联系电话" prop="contactPhone">
           <el-input v-model="formData.contactPhone" />
@@ -188,6 +175,10 @@
 
         <el-form-item label="人数" prop="personNum">
           <el-input v-model="formData.personNum" />
+        </el-form-item>
+
+        <el-form-item label="负责人" prop="leader">
+          <el-input v-model="formData.leader" />
         </el-form-item>
 
 
