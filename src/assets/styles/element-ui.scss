@@ -120,9 +120,11 @@
         // width: 1808;
         height: 30;
         border-width: 1px;
-        border: 1px solid;
-        border-image-source: linear-gradient(180deg, #0D5CF7 0%, #5B93FF 100%);
-    }
+        // border: 1px solid;
+        // border-image-source: linear-gradient(180deg, #0D5CF7 0%, #5B93FF 100%);
+        border: 1px solid #5B93FF !important;
+        border-image-source: #5B93FF;
+      }
     // tr {
     //   color: #fff !important;
     //   background: #1A60EA !important;
@@ -144,9 +146,10 @@
       background: #052a7d;
       // background: #182549 ;
       .cell {
-        padding: 10px;
+        padding: 20px 15px;
         color: #fff;
         text-align: center;
+        font-size: 18px;
       }
     }
   }

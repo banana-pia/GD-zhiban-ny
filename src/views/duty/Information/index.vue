@@ -6,7 +6,7 @@
         <span class="demonstration">日期查询</span>
         <el-date-picker @change="changeDate" v-model="curDate" type="date" placeholder="选择日期" :size="size"
           format="YYYY-MM-DD" value-format="YYYY-MM-DD" :clearable="false" />
-        <el-button style="margin-left: 10px;" @click="getWeekDuty" type="primary">本周执勤</el-button>
+        <el-button style="margin-left: 10px;" @click="getWeekDuty" type="primary">本周值勤</el-button>
       </p>
     </div>
     <div>
@@ -74,7 +74,7 @@ const allData = ref([])
 const dialogVisible = ref(false)
 const tableDataLow = ref([])
 const openDio = (row) => {
-  dialogVisible.value = true
+ 
   debugger
   console.log('点击了部门：', row.dept_name)
   allData.value.forEach((item) => {
@@ -82,10 +82,17 @@ const openDio = (row) => {
       item.children.forEach((value) => {
         Object.keys(value).forEach((val) => {
           if (val != 'children' && val == row.dept_name) {
-            const list = flattenDatalist(value)
+            // const list = flattenDatalist([...value])
             // const flat = flattenData(list)
-            const merged = mergeDutyByContinuousTime(list)
-            tableDataLow.value = calcDeptRowSpan(merged)
+            if(value.children && value.children.length) {
+               dialogVisible.value = true
+               const list =  flattenData(value.children)
+              const merged = mergeDutyByContinuousTime(list)
+              tableDataLow.value = calcDeptRowSpan(merged)
+            } else {
+              Message.info('该部门没有值班人员')
+            }
+           
           }
         })
       })
@@ -126,6 +133,7 @@ const getList = (week) => {
 //数据分解
 function flattenDatalist(source) {
   let arr = []
+  debugger
   source.map((item) => {
     item.children.forEach((value) => {
       Object.keys(value).forEach((val) => {

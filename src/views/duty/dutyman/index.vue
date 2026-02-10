@@ -6,12 +6,12 @@
         <span class="demonstration">日期查询</span>
         <el-date-picker @change="changeDate" v-model="curDate" type="date" placeholder="选择日期" :size="size"
           format="YYYY-MM-DD" value-format="YYYY-MM-DD" :clearable="false" />
-        <el-button style="margin-left: 10px;" @click="getWeekDuty" type="primary">本周执勤</el-button>
+        <el-button style="margin-left: 10px;" @click="getWeekDuty" type="primary">本周值勤</el-button>
       </p>
     </div>
     <div>
       <el-table class="web-table" :data="tableData" ref="tableRef" :span-method="spanMethod" border
-        style="width: 100%;height: 100% ">
+        style="width: 100%;">
         <el-table-column v-for="value in columns" :key="value.prop" :prop="value.prop" :label="value.label"
           :width="value.width">
           <template #default="{ row }" v-if="value.soltName === 'dutyTime'">
@@ -161,6 +161,26 @@ function spanMethod({ row, column }) {
     }
     return { rowspan: 0, colspan: 0 }
   }
+  const DEPT_COLS = [
+    'dept_name',
+    'duty_team',
+    'person_num',
+    'leader',
+    'contact_phone'
+  ]
+
+  if (DEPT_COLS.includes(column.property)) {
+    const span =  row._deptRowSpan
+
+    if (span === 0) {
+      return { rowspan: 0, colspan: 0 }
+    }
+
+    return {
+      rowspan: span || 1,
+      colspan: 1
+    }
+  }
 
   // ② 其他需要“人+席位”合并的列
   const PERSON_MERGE_COLS = [
@@ -170,9 +190,9 @@ function spanMethod({ row, column }) {
     'duty',
     'seat_phone',
     'duty_time',
-    'duty_team',
-    'leader',
-    'contact_phone'
+    // 'duty_team',
+    // 'leader',
+    // 'contact_phone'
   ]
 
   if (PERSON_MERGE_COLS.includes(column.property)) {

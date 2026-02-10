@@ -27,7 +27,7 @@
         <!-- <p></p> -->
         <div class="strength-title">
 
-          <div>兵力统计</div>
+          <div>{{curTab == 1 ? "值班兵力统计" : "行动兵力统计" }}</div>
           <div>
             <el-date-picker v-model="dayParams" value-format="YYYY-MM-DD" @change="changeData" type="day"
               placeholder="选择日期" />
@@ -51,45 +51,50 @@
         </div>
         <div class="dio-body">
           <!-- :span-method="spanMethod" -->
-          <el-table class="web-table harder-border" :data="tableData" border  style="width: 100%">
+          <el-table class="web-table harder-border" :data="tableData" border style="width: 100%;height: 100%;">
             <!-- 基础信息 -->
             <el-table-column type="index" width="50" label="序号" />
             <el-table-column prop="month" label="月份" />
 
-            <!-- 任务来源 -->
-            <el-table-column label="任务来源">
-              <el-table-column prop="taskName" label="任务名称" />
-              <el-table-column prop="taskSource" label="任务来源" />
-              <el-table-column prop="demandUnitDivision" label="需求单位" />
-            </el-table-column>
+
 
             <!-- 基本情况 -->
             <el-table-column label="基本情况">
-              <el-table-column prop="taskType" label="任务类型" />
-              <el-table-column prop="taskTimeRange" label="执行时间" width="130">
-                <template #default="{ row }">
-                  <div v-if="row.taskTimeStart != row.taskTimeEnd">{{ row.taskTimeStart }}<br /> ~ <br />{{ row.taskTimeEnd }}</div>
-                  <div v-else>{{ row.taskTimeStart }}</div>
-                </template>
+              <!-- 任务来源 -->
+              <el-table-column label="任务来源">
+                <el-table-column prop="taskName" label="任务名称" />
+                <el-table-column prop="taskSource" label="任务来源" />
+                <el-table-column prop="deptName" label="需求单位名称(师单位)" />
+                <el-table-column prop="demandUnitDivision" label="需求单位" />
+                <el-table-column prop="taskType" label="任务类型" />
+                <el-table-column prop="taskTimeRange" label="执行时间" width="130">
+                  <template #default="{ row }">
+                    <div v-if="row.taskTimeStart != row.taskTimeEnd">{{ row.taskTimeStart }}<br /> ~ <br />{{
+                      row.taskTimeEnd }}</div>
+                    <div v-else>{{ row.taskTimeStart }}</div>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="days" label="天数" />
+                <el-table-column prop="participantCount" label="执行人数" />
+                <el-table-column prop="personDays" label="人/天数" />
+                <el-table-column prop="specificTask" label="民兵担任的具体任务" />
               </el-table-column>
-              <el-table-column prop="days" label="天数" />
-              <el-table-column prop="participantCount" label="执行人数" />
-              <el-table-column prop="personDays" label="人/天数" />
-              <el-table-column prop="specificTask" label="民兵担任的具体任务" />
+
+              <!-- 审核报批 -->
+              <el-table-column label="审核报批">
+                <el-table-column prop="approveUnit" label="批准单位" />
+                <el-table-column prop="approveFileName" label="批准用兵文件" />
+                <el-table-column prop="fileNumber" label="发文字号" />
+              </el-table-column>
+
+              <!-- 现场指挥 -->
+              <el-table-column label="现场指挥">
+                <el-table-column prop="commandUnit" label="指挥单位" />
+                <el-table-column prop="commanderInfo" label="指挥人员，电话" />
+              </el-table-column>
             </el-table-column>
 
-            <!-- 审核报批 -->
-            <el-table-column label="审核报批">
-              <el-table-column prop="approveUnit" label="批准单位" />
-              <el-table-column prop="approveFileName" label="批准用兵文件" />
-              <el-table-column prop="fileNumber" label="发文字号" />
-            </el-table-column>
 
-            <!-- 现场指挥 -->
-            <el-table-column label="现场指挥">
-              <el-table-column prop="commandUnit" label="指挥单位" />
-              <el-table-column prop="commanderInfo" label="指挥人员，电话" />
-            </el-table-column>
           </el-table>
         </div>
       </div>
@@ -105,43 +110,43 @@ import { dutyStatistics, dutyStatDesc, soldierStatDesc, soldierStatList, preview
 
 //--------------------弹窗--------------------------
 const tableDataLow = ref([{
-    taskId: 1,
-    index: 1,
-    month: '1月',
-    task_name: '2025年元旦升旗安保',
-    task_source: '区政府',
-    request_unit: '东城区人武部',
-    task_type: '协助安保',
-    task_time: '2024-12-31 ~ 2025-01-01',
-    days: 1,
-    people: '民兵150人',
-    soldier_count: 150,
-    service_type: '安保勤务',
-    approve_unit: '东城区政府',
-    approve_leader: '张三',
-    approve_time: '2024-12-20',
-    commander: '李四',
-    contact: '138****0001'
-  },
-  {
-    taskId: 1,
-    index: 1,
-    month: '1月',
-    task_name: '2025年元旦升旗安保',
-    task_source: '区政府',
-    request_unit: '东城区人武部',
-    task_type: '协助安保',
-    task_time: '2024-12-31 ~ 2025-01-01',
-    days: 1,
-    people: '民兵150人',
-    soldier_count: 150,
-    service_type: '安保勤务',
-    approve_unit: '东城区政府',
-    approve_leader: '张三',
-    approve_time: '2024-12-20',
-    commander: '王五',
-    contact: '138****0002'
-  }])
+  taskId: 1,
+  index: 1,
+  month: '1月',
+  task_name: '2025年元旦升旗安保',
+  task_source: '区政府',
+  request_unit: '东城区人武部',
+  task_type: '协助安保',
+  task_time: '2024-12-31 ~ 2025-01-01',
+  days: 1,
+  people: '民兵150人',
+  soldier_count: 150,
+  service_type: '安保勤务',
+  approve_unit: '东城区政府',
+  approve_leader: '张三',
+  approve_time: '2024-12-20',
+  commander: '李四',
+  contact: '138****0001'
+},
+{
+  taskId: 1,
+  index: 1,
+  month: '1月',
+  task_name: '2025年元旦升旗安保',
+  task_source: '区政府',
+  request_unit: '东城区人武部',
+  task_type: '协助安保',
+  task_time: '2024-12-31 ~ 2025-01-01',
+  days: 1,
+  people: '民兵150人',
+  soldier_count: 150,
+  service_type: '安保勤务',
+  approve_unit: '东城区政府',
+  approve_leader: '张三',
+  approve_time: '2024-12-20',
+  commander: '王五',
+  contact: '138****0002'
+}])
 const dialogVisible = ref(false)
 function buildRowSpan(data) {
   const map = new Map()
@@ -169,7 +174,7 @@ function buildRowSpan(data) {
 const tableData = ref([])
 //获取值班兵力列表
 const getSoldierStatList = (deptName) => {
-  soldierStatList({ data: monthParams.value,pageNum:1,pageSize:'1000',deptName }).then(res => {
+  soldierStatList({ date: monthParams.value, pageNum: 1, pageSize: '1000', deptName }).then(res => {
     dialogVisible.value = true
     tableData.value = res.list
   })
@@ -222,9 +227,16 @@ const option = {
   //   top: 20,
   //   textStyle: { color: '#fff', fontSize: 18 }
   // },
+  tooltip: {
+    // trigger: 'axis', // or 'item'
+    axisPointer: {
+      // type: 'cross', // crosshair pointer
+      label: { backgroundColor: '#6a7985' }
+    }
+  },
   grid: {
-    left: 100,
-    right: 40,
+    left: 60,
+    right: 20,
     top: 40,
     bottom: 100
   },
@@ -233,7 +245,7 @@ const option = {
     axisLabel: {
       color: '#ffffff',
       fontSize: 20,
-      fontWeight: 'bold',
+      // fontWeight: 'bold',
       rotate: 30   // ✅ X 轴字体倾斜 45°
     },
     axisLine: {
@@ -287,7 +299,7 @@ const option = {
 //<------------获取值班兵力和行动兵力数据------------>
 const getData = () => {
   if (curTab.value == 1) {
-    dutyStatistics({ data: dayParams.value }).then(res => {
+    dutyStatistics({ date: dayParams.value }).then(res => {
       console.log('兵力统计数据：', res)
       let xAxisDataNew = []
       let echartsDataNew = []
@@ -315,7 +327,7 @@ const getData = () => {
     })
   }
   if (curTab.value == 2) {
-    previewSoldierStat({ data: monthParams.value }).then((res)=>{
+    previewSoldierStat({ date: monthParams.value }).then((res) => {
       console.log('兵力统计数据：', res)
       let xAxisDataNew = []
       let echartsDataNew = []
@@ -343,14 +355,14 @@ const getData = () => {
 }
 //<------------获取值班兵力描述------------>
 const getDutyStatDesc = () => {
-  dutyStatDesc({ startDate: dayParams.value ,endDate: dayParams.value}).then(res => {
+  dutyStatDesc({ startDate: dayParams.value, endDate: dayParams.value }).then(res => {
     console.log('值班兵力描述：', res)
     descBl.value = res
   })
 }
 //<------------获取行动兵力描述------------>
 const getZdysx = () => {
-  soldierStatDesc({ startDate: dayParams.value ,endDate: dayParams.value}).then(res => {
+  soldierStatDesc({ startDate: dayParams.value, endDate: dayParams.value }).then(res => {
     console.log('行动兵力描述：', res)
     strebl.value = res
   })
@@ -402,9 +414,9 @@ onMounted(() => {
     chartInstance = echarts.init(chartRef.value)
     chartInstance.setOption(option)
     chartInstance.on('click', function (params) {
-      if(curTab.value == 2) {
+      if (curTab.value == 2) {
         debugger
-       getSoldierStatList(params.name) 
+        getSoldierStatList(params.name)
 
       }
     });
@@ -459,7 +471,12 @@ onBeforeUnmount(() => {
 .curTab {
   >div:nth-child(2) {
     >div:nth-child(1) {
-      transform: scale(1.1);
+      flex-grow: 0;
+      flex-shrink: 0;
+      // overflow: hidden;
+      // transform: scale(1.1);
+      // transform: translateX(1.1%);
+      font-size: 30px !important;
       background: linear-gradient(180deg, #e4b92c 16.5%, #ffa228);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
@@ -601,6 +618,7 @@ onBeforeUnmount(() => {
   height: calc(100% - 120px);
   /* ❗ 没高度 = 一定不显示 */
 }
+
 .dia-con {
   :deep(.el-dialog) {
     padding: 0px !important;
