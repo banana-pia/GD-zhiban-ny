@@ -50,8 +50,8 @@
       <el-table-column prop="taskName" label="任务名称" />
       <el-table-column prop="taskSource" label="任务来源" />
       <el-table-column prop="taskType" label="任务类型" />
-      <el-table-column prop="demandUnitDivision" label="需求单位（师单位）" />
-      <el-table-column prop="deptName" label="需求单位" />
+      <el-table-column prop="demandUnitDivision" label="需求单位" />
+      <el-table-column prop="deptName" label="需求单位（师单位）" />
       <el-table-column prop="month" label="月份" />
       <el-table-column prop="taskTimeStart" label="开始时间" />
       <el-table-column prop="taskTimeEnd" label="结束时间" />
@@ -126,15 +126,15 @@
 
         <el-row :gutter="10">
           <el-col :span="12">
-            <el-form-item label="需求单位" prop="deptId">
-              <el-input v-model="formData.deptId" />
+            <el-form-item label="需求单位" prop="demandUnitDivision">
+              <el-input v-model="formData.demandUnitDivision" />
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="需求单位（师）" prop="demandUnitDivision">
+            <el-form-item label="需求单位（师）" prop="deptId">
               <!-- <el-input v-model="formData.deptId" /> -->
             <el-tree-select
-              v-model="formData.demandUnitDivision"
+              v-model="formData.deptId"
               :data="deptOptions"
               :props="{ value: 'deptId', label: 'deptName', children: 'children' }"
               value-key="deptId"
