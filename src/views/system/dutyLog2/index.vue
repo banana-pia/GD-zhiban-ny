@@ -3,19 +3,19 @@
 
     <!-- 搜索栏 -->
     <el-form :inline="true" :model="searchForm" class="search-form">
-      <el-form-item label="值班时间">
+      <!-- <el-form-item label="值班时间">
         <el-date-picker
           v-model="searchForm.date"
           type="date"
           placeholder="选择日期"
           value-format="YYYY-MM-DD"
         />
-      </el-form-item>
+      </el-form-item> -->
 
-      <el-form-item label="人员名称">
+      <el-form-item label="文件名称">
         <el-input
-          v-model="searchForm.name"
-          placeholder="请输入人员名称"
+          v-model="searchForm.fileName"
+          placeholder="请输入文件名称"
           clearable
         />
       </el-form-item>
@@ -95,8 +95,8 @@ const total = ref(0)
 
 /* 搜索条件 */
 const searchForm = reactive({
-  date: '',
-  name: ''
+  // date: '',
+  fileName: ''
 })
 
 /* 表格数据（后期换接口） */
@@ -126,8 +126,8 @@ const handleSearch = async () => {
   // 调接口
   try {
     const params = new URLSearchParams()
-    if (searchForm.date) params.append('date', searchForm.date)
-    if (searchForm.name) params.append('name', searchForm.name)
+    // if (searchForm.date) params.append('date', searchForm.date)
+    if (searchForm.fileName) params.append('name', searchForm.fileName)
     
     const response = await fetch(`/api/files/search?${params}`)
     if (response.ok) {
@@ -143,8 +143,8 @@ const handleSearch = async () => {
 }
 
 const resetSearch = () => {
-  searchForm.date = ''
-  searchForm.name = ''
+  // searchForm.date = ''
+  searchForm.fileName = ''
   getFilesList()
 }
 

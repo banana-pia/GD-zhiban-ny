@@ -3,22 +3,14 @@
 
     <!-- 搜索栏 -->
     <el-form :inline="true" :model="searchForm" class="search-form">
-      <el-form-item label="值班时间">
+      <!-- <el-form-item label="值班时间">
         <el-date-picker
             v-model="searchForm.startTime"
             placeholder="值班开始时间"
             type="datetime"
             value-format="YYYY-MM-DD HH:mm:ss"
           />
-        <!-- <el-date-picker
-          v-model="searchForm.timeRange"
-          type="daterange"
-          range-separator="至"
-          start-placeholder="开始日期"
-          end-placeholder="结束日期"
-          value-format="YYYY-MM-DD"
-        /> -->
-      </el-form-item>
+      </el-form-item> -->
 
       <el-form-item label="人员名称">
         <el-input
@@ -102,6 +94,7 @@
       :title="dialogTitle"
       v-model="dialogVisible"
       width="500px"
+      :close-on-click-modal="false"
     >
       <el-form
         ref="formRef"
@@ -110,18 +103,6 @@
         label-width="100px"
       >
         <el-form-item label="值班人员" prop="personName">
-          <!-- <el-select 
-            v-model="formData.personId" 
-            placeholder="请选择值班人员"
-            style="width: 100%"
-          >
-            <el-option
-              v-for="person in personnelOptions"
-              :key="person.id"
-              :label="person.label"
-              :value="person.value"
-            />
-          </el-select> -->
           <el-input v-model="formData.personName" />
         </el-form-item>
         <el-form-item label="人员类别" prop="personType">
@@ -174,9 +155,7 @@
           <el-input v-model="formData.seatPhone" />
         </el-form-item>
 
-        <el-form-item label="负责人" prop="leader">
-          <el-input v-model="formData.leader" />
-        </el-form-item>
+        
 
         <el-form-item label="联系电话" prop="contactPhone">
           <el-input v-model="formData.contactPhone" />
@@ -188,6 +167,10 @@
 
         <el-form-item label="人数" prop="personNum">
           <el-input v-model="formData.personNum" />
+        </el-form-item>
+
+        <el-form-item label="负责人" prop="leader">
+          <el-input v-model="formData.leader" />
         </el-form-item>
 
 
@@ -251,7 +234,7 @@ const total = ref(0)
 
 /* 搜索条件 */
 const searchForm = reactive({
-  startTime: '',
+  // startTime: '',
   personName: ''
 })
 
@@ -359,7 +342,7 @@ const handleSearch = () => {
 }
 
 const resetSearch = () => {
-  searchForm.startTime = ''
+  // searchForm.startTime = ''
   searchForm.personName = ''
   getDutyList()
 }

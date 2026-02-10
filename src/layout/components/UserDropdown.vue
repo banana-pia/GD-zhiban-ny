@@ -36,7 +36,7 @@ const userName = '张三'
 
 const handleCommand = (command) => {
   if (command === 'admin') {
-    router.push('/system/user') // 后台管理路由
+    router.push('/duty/dashboard') // 后台管理路由
   }
 
   if (command === 'logout') {
