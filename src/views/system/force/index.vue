@@ -3,7 +3,7 @@
 
     <!-- 搜索栏 -->
     <el-form :inline="true" :model="searchForm" class="search-form">
-      <el-form-item label="任务时间">
+      <!-- <el-form-item label="任务时间">
         <el-date-picker
           v-model="searchForm.taskTimeRange"
           type="daterange"
@@ -12,7 +12,7 @@
           end-placeholder="结束日期"
           value-format="YYYY-MM-DD"
         />
-      </el-form-item>
+      </el-form-item> -->
 
       <el-form-item label="任务名称">
         <el-input
@@ -291,7 +291,7 @@ const deptOptions1 = ref([])
 
 /* 搜索条件 */
 const searchForm = reactive({
-  taskTimeRange: [],
+  // taskTimeRange: [],
   taskName: ''
 })
 
@@ -357,7 +357,7 @@ const handleSearch = () => {
 }
 
 const resetSearch = () => {
-  searchForm.taskTimeRange = []
+  // searchForm.taskTimeRange = []
   searchForm.name = ''
 }
 

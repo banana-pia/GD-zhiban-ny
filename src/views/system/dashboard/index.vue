@@ -3,22 +3,14 @@
 
     <!-- 搜索栏 -->
     <el-form :inline="true" :model="searchForm" class="search-form">
-      <el-form-item label="值班时间">
+      <!-- <el-form-item label="值班时间">
         <el-date-picker
             v-model="searchForm.startTime"
             placeholder="值班开始时间"
             type="datetime"
             value-format="YYYY-MM-DD HH:mm:ss"
           />
-        <!-- <el-date-picker
-          v-model="searchForm.timeRange"
-          type="daterange"
-          range-separator="至"
-          start-placeholder="开始日期"
-          end-placeholder="结束日期"
-          value-format="YYYY-MM-DD"
-        /> -->
-      </el-form-item>
+      </el-form-item> -->
 
       <el-form-item label="人员名称">
         <el-input
@@ -242,7 +234,7 @@ const total = ref(0)
 
 /* 搜索条件 */
 const searchForm = reactive({
-  startTime: '',
+  // startTime: '',
   personName: ''
 })
 
@@ -350,7 +342,7 @@ const handleSearch = () => {
 }
 
 const resetSearch = () => {
-  searchForm.startTime = ''
+  // searchForm.startTime = ''
   searchForm.personName = ''
   getDutyList()
 }
