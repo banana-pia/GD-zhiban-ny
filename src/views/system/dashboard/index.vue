@@ -96,6 +96,49 @@
       width="500px"
       :close-on-click-modal="false"
     >
+      <!-- <div class="duty-page">
+        <div v-for="(item, index) in formDataList" :key="index" class="form-row">
+          <el-form
+            :ref="`formRef-${index}`"
+            :model="item"
+            :rules="rules"
+            label-width="100px"
+            inline
+          >
+            <el-form-item label="值班人员" prop="personName">
+              <el-input v-model="item.personName" />
+            </el-form-item>
+
+            <el-form-item label="人员类别" prop="personType">
+              <el-select v-model="item.personType" placeholder="请选择人员类型">
+                <el-option
+                  v-for="type in typeOptions"
+                  :key="type.id"
+                  :label="type.label"
+                  :value="type.value"
+                />
+              </el-select>
+            </el-form-item>
+
+            <el-form-item label="单位" prop="deptId">
+              <el-tree-select
+                v-model="item.deptId"
+                :data="deptOptions"
+                :props="{ value: 'deptId', label: 'deptName', children: 'children' }"
+                value-key="deptId"
+                placeholder="选择单位"
+                check-strictly
+              />
+            </el-form-item>
+
+            <el-form-item>
+              <el-button type="danger" @click="removeRow(index)">删除</el-button>
+            </el-form-item>
+          </el-form>
+        </div>
+        <el-button type="primary" @click="addRow">新增行</el-button>
+        <el-button type="success" @click="submitAll">提交全部</el-button>
+      </div> -->
       <el-form
         ref="formRef"
         :model="formData"
@@ -157,9 +200,7 @@
 
         
 
-        <el-form-item label="联系电话" prop="contactPhone">
-          <el-input v-model="formData.contactPhone" />
-        </el-form-item>
+        
 
         <el-form-item label="值班分队" prop="dutyTeam">
           <el-input v-model="formData.dutyTeam" />
@@ -171,6 +212,10 @@
 
         <el-form-item label="负责人" prop="leader">
           <el-input v-model="formData.leader" />
+        </el-form-item>
+
+        <el-form-item label="联系电话" prop="contactPhone">
+          <el-input v-model="formData.contactPhone" />
         </el-form-item>
 
 
@@ -231,6 +276,47 @@ onMounted(() => {
 const pageSize = ref(10)
 const currentPage = ref(1)
 const total = ref(0)
+
+const addRow = () => {
+  formDataList.value.push({
+    id: null,
+    personName: '',
+    deptId: '',
+    duty: '',
+    seatName: '',
+    seatPhone: '',
+    leader: '',
+    contactPhone: '',
+    dutyTeam: '',
+    personNum: '',
+    startTime: '',
+    endTime: '',
+    personType: ''
+  })
+}
+
+const removeRow = (index) => {
+  formDataList.value.splice(index, 1)
+}
+
+
+const formDataList = ref([
+  {
+    id: null,
+    personName: '',
+    deptId: '',
+    duty: '',
+    seatName: '',
+    seatPhone: '',
+    leader: '',
+    contactPhone: '',
+    dutyTeam: '',
+    personNum: '',
+    startTime: '',
+    endTime: '',
+    personType: ''
+  }
+])
 
 /* 搜索条件 */
 const searchForm = reactive({
@@ -516,5 +602,11 @@ const deleteRow = (row) => {
 .toolbar {
   margin-bottom: 16px;
   text-align: right;
+}
+.form-row {
+  border: 1px solid #ebeef5;
+  padding: 16px;
+  margin-bottom: 16px;
+  border-radius: 4px;
 }
 </style>
