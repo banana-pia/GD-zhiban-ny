@@ -2,7 +2,7 @@
   <div class="duty-page">
 
     <!-- 搜索栏 -->
-    <el-form :inline="true" :model="searchForm" class="search-form">
+    <el-form :inline="true" :model="searchForm" class="search-form"  @submit.prevent>
       <!-- <el-form-item label="任务时间">
         <el-date-picker
           v-model="searchForm.taskTimeRange"
@@ -19,6 +19,7 @@
           v-model="searchForm.taskName"
           placeholder="请输入任务名称"
           clearable
+           @keyup.enter="handleSearch"
         />
       </el-form-item>
 

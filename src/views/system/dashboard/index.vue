@@ -2,7 +2,7 @@
   <div class="duty-page">
 
     <!-- 搜索栏 -->
-    <el-form :inline="true" :model="searchForm" class="search-form">
+    <el-form :inline="true" :model="searchForm" class="search-form"  @submit.prevent>
       <!-- <el-form-item label="值班时间">
         <el-date-picker
             v-model="searchForm.startTime"
@@ -17,6 +17,7 @@
           v-model="searchForm.personName"
           placeholder="请输入人员名称"
           clearable
+          @keyup.enter="handleSearch"
         />
       </el-form-item>
 
@@ -93,53 +94,169 @@
     <el-dialog
       :title="dialogTitle"
       v-model="dialogVisible"
-      width="500px"
+      width="1200px"
       :close-on-click-modal="false"
     >
-      <!-- <div class="duty-page">
-        <div v-for="(item, index) in formDataList" :key="index" class="form-row">
-          <el-form
-            :ref="`formRef-${index}`"
-            :model="item"
-            :rules="rules"
-            label-width="100px"
-            inline
-          >
-            <el-form-item label="值班人员" prop="personName">
-              <el-input v-model="item.personName" />
-            </el-form-item>
+     
+      <el-table
+      v-if ="dialogTitle === '新增值班人员'"
+  :data="formDataList"
+  border
+  style="width: 100%"
+  class="editable-table"
+  :span-method="objectSpanMethod"
+>
+  <el-table-column label="值班人员 *" width="120">
+    <template #default="{ row, $index }">
+      <el-form-item :rules="tableRules.personName">
+        <el-input v-model="row.personName" placeholder="请输入" />
+      </el-form-item>
+    </template>
+  </el-table-column>
 
-            <el-form-item label="人员类别" prop="personType">
-              <el-select v-model="item.personType" placeholder="请选择人员类型">
-                <el-option
-                  v-for="type in typeOptions"
-                  :key="type.id"
-                  :label="type.label"
-                  :value="type.value"
-                />
-              </el-select>
-            </el-form-item>
+  <el-table-column label="人员类别 *" width="120">
+    <template #default="{ row }">
+      <el-form-item :rules="tableRules.personType">
+        <el-select v-model="row.personType" placeholder="请选择" style="width: 100%">
+          <el-option
+            v-for="type in typeOptions"
+            :key="type.value"
+            :label="type.label"
+            :value="type.value"
+          />
+        </el-select>
+      </el-form-item>
+    </template>
+  </el-table-column>
 
-            <el-form-item label="单位" prop="deptId">
-              <el-tree-select
-                v-model="item.deptId"
-                :data="deptOptions"
-                :props="{ value: 'deptId', label: 'deptName', children: 'children' }"
-                value-key="deptId"
-                placeholder="选择单位"
-                check-strictly
-              />
-            </el-form-item>
+  <el-table-column label="单位 *" width="120">
+    <template #default="{ row }">
+      <el-form-item :rules="tableRules.deptId">
+        <el-tree-select
+          v-model="row.deptId"
+          :data="deptOptions"
+          :props="{ value: 'deptId', label: 'deptName', children: 'children' }"
+          value-key="deptId"
+          placeholder="选择单位"
+          check-strictly
+          style="width: 100%"
+        />
+      </el-form-item>
+    </template>
+  </el-table-column>
 
-            <el-form-item>
-              <el-button type="danger" @click="removeRow(index)">删除</el-button>
-            </el-form-item>
-          </el-form>
-        </div>
-        <el-button type="primary" @click="addRow">新增行</el-button>
-        <el-button type="success" @click="submitAll">提交全部</el-button>
-      </div> -->
+  <el-table-column label="职务 *" width="100">
+    <template #default="{ row }">
+      <el-form-item :rules="tableRules.duty">
+        <el-input v-model="row.duty" placeholder="请输入" />
+      </el-form-item>
+    </template>
+  </el-table-column>
+
+  <el-table-column label="值班席位 *" width="120">
+    <template #default="{ row }">
+      <el-form-item :rules="tableRules.seatName">
+        <el-select v-model="row.seatName" placeholder="请选择" style="width: 100%">
+          <el-option
+            v-for="seat in seatOptions"
+            :key="seat.value"
+            :label="seat.label"
+            :value="seat.value"
+          />
+        </el-select>
+      </el-form-item>
+    </template>
+  </el-table-column>
+
+  <el-table-column label="席位电话 *" width="130">
+    <template #default="{ row }">
+      <el-form-item :rules="tableRules.seatPhone">
+        <el-input v-model="row.seatPhone" placeholder="请输入" />
+      </el-form-item>
+    </template>
+  </el-table-column>
+
+  <el-table-column label="开始时间 *" width="160">
+    <template #default="{ row }">
+      <el-form-item :rules="tableRules.startTime">
+        <el-date-picker
+          v-model="row.startTime"
+          type="datetime"
+          placeholder="选择时间"
+          value-format="YYYY-MM-DD HH:mm:ss"
+          style="width: 100%"
+        />
+      </el-form-item>
+    </template>
+  </el-table-column>
+
+  <el-table-column label="结束时间 *" width="160">
+    <template #default="{ row }">
+      <el-form-item :rules="tableRules.endTime">
+        <el-date-picker
+          v-model="row.endTime"
+          type="datetime"
+          placeholder="选择时间"
+          value-format="YYYY-MM-DD HH:mm:ss"
+          style="width: 100%"
+        />
+      </el-form-item>
+    </template>
+  </el-table-column>
+
+  <el-table-column label="值班分队 *" width="120">
+    <template #default="{ row }">
+      <el-form-item :rules="tableRules.dutyTeam">
+        <el-input v-model="row.dutyTeam" placeholder="请输入" />
+      </el-form-item>
+    </template>
+  </el-table-column>
+
+  <el-table-column label="人数 *" width="80">
+    <template #default="{ row }">
+      <el-form-item :rules="tableRules.personNum">
+        <el-input v-model="row.personNum" placeholder="请输入" />
+      </el-form-item>
+    </template>
+  </el-table-column>
+
+  <el-table-column label="负责人 *" width="100">
+    <template #default="{ row }">
+      <el-form-item :rules="tableRules.leader">
+        <el-input v-model="row.leader" placeholder="请输入" />
+      </el-form-item>
+    </template>
+  </el-table-column>
+
+  <el-table-column label="联系电话 *" width="130">
+    <template #default="{ row }">
+      <el-form-item :rules="tableRules.contactPhone">
+        <el-input v-model="row.contactPhone" placeholder="请输入" />
+      </el-form-item>
+    </template>
+  </el-table-column>
+
+  
+
+  <el-table-column label="操作" width="120" fixed="right">
+    <template #default="{ $index }">
+      <el-button type="danger" link @click="removeRow($index)">删除</el-button>
+    </template>
+  </el-table-column>
+</el-table>
+
+      <!-- 操作按钮 -->
+      <div class="table-toolbar" style="margin-top: 16px;">
+        <el-button @click="dialogVisible = false" v-if="dialogTitle === '新增值班人员'">
+          取消
+        </el-button>
+        <el-button type="primary" @click="addRow" v-if ="dialogTitle === '新增值班人员'">新增值班人员</el-button>
+        <el-button type="success" @click="submitAll" v-if ="dialogTitle === '新增值班人员'">提交全部</el-button>
+      </div>
+
+      
       <el-form
+      v-if="dialogTitle === '修改值班信息'"   
         ref="formRef"
         :model="formData"
         :rules="rules"
@@ -238,10 +355,10 @@
       </el-form>
 
       <template #footer>
-        <el-button @click="dialogVisible = false">
+        <el-button @click="dialogVisible = false" v-if="dialogTitle === '修改值班信息'">
           取消
         </el-button>
-        <el-button type="primary" @click="submitForm">
+        <el-button type="primary" @click="submitForm" v-if="dialogTitle === '修改值班信息'">
           确定
         </el-button>
       </template>
@@ -277,27 +394,142 @@ const pageSize = ref(10)
 const currentPage = ref(1)
 const total = ref(0)
 
+// 表格行合并方法
+const objectSpanMethod = ({ row, column, rowIndex, columnIndex }) => {
+  if (columnIndex === 8 || columnIndex === 9 || columnIndex === 10 || columnIndex === 11) {
+    if (rowIndex === 0) {
+      // 第一行：合并所有行
+      return [formDataList.value.length, 1]
+    } else {
+      // 其他行：隐藏
+      return [0, 0]
+    }
+  }
+  // 其他列不合并
+  return [1, 1]
+}
+
+// 提交全部 - 按顺序逐行提交
+const submitAll = async () => {
+  // 1. 先校验所有行
+  let hasError = false
+  let errorRow = 0
+  let errorField = ''
+  
+  for (let i = 0; i < formDataList.value.length; i++) {
+    const row = formDataList.value[i]
+    for (const key in tableRules) {
+      const rules = tableRules[key]
+      for (const rule of rules) {
+        if (rule.required && !row[key]) {
+          hasError = true
+          errorRow = i + 1
+          errorField = getLabel(key)
+          break
+        }
+        if (rule.pattern && row[key] && !rule.pattern.test(row[key])) {
+          hasError = true
+          errorRow = i + 1
+          errorField = getLabel(key)
+          break
+        }
+      }
+      if (hasError) break
+    }
+    if (hasError) break
+  }
+  
+  if (hasError) {
+    ElMessage.warning(`第 ${errorRow} 行 ${errorField} 不能为空或格式不正确`)
+    return
+  }
+  
+  // 2. 校验通过，遍历数组按顺序提交
+  try {
+    for (let i = 0; i < formDataList.value.length; i++) {
+      const row = formDataList.value[i]
+      const params = { ...row }
+      
+      // 逐行提交，等待上一个请求完成后再提交下一个
+      await saveDuty(params)
+      
+      ElMessage.success(`第 ${i + 1} 行提交成功`)
+    }
+    
+    // 3. 全部提交成功后刷新列表
+    getDutyList()
+    dialogVisible.value = false
+    ElMessage.success('全部数据提交成功')
+    
+  } catch (error) {
+    ElMessage.error('提交失败，请检查数据后重试')
+    console.error('提交错误:', error)
+  }
+}
+
+// 获取字段对应标签名
+const getLabel = (key) => {
+  const labelMap = {
+    personName: '值班人员',
+    personType: '人员类别',
+    deptId: '单位',
+    duty: '职务',
+    seatName: '值班席位',
+    seatPhone: '席位电话',
+    dutyTeam: '值班分队',
+    personNum: '人数',
+    leader: '负责人',
+    contactPhone: '联系电话',
+    startTime: '开始时间',
+    endTime: '结束时间'
+  }
+  return labelMap[key] || key
+}
+
+const tableRules = {
+  personName: [{ required: true, message: '必填', trigger: 'blur' }],
+  personType: [{ required: true, message: '必填', trigger: 'change' }],
+  deptId: [{ required: true, message: '必填', trigger: 'change' }],
+  duty: [{ required: true, message: '必填', trigger: 'blur' }],
+  seatName: [{ required: true, message: '必填', trigger: 'change' }],
+  seatPhone: [{ required: true, message: '必填', trigger: 'blur' }],
+  dutyTeam: [{ required: true, message: '必填', trigger: 'blur' }],
+  personNum: [
+    { required: true, message: '必填', trigger: 'blur' },
+    { pattern: /^\d+$/, message: '请输入数字', trigger: 'blur' }
+  ],
+  leader: [{ required: true, message: '必填', trigger: 'blur' }],
+  contactPhone: [
+    { required: true, message: '必填', trigger: 'blur' },
+    { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号', trigger: 'blur' }
+  ],
+  startTime: [{ required: true, message: '必填', trigger: 'change' }],
+  endTime: [{ required: true, message: '必填', trigger: 'change' }]
+}
+// 新增行
 const addRow = () => {
   formDataList.value.push({
     id: null,
     personName: '',
+    personType: '',
     deptId: '',
     duty: '',
     seatName: '',
     seatPhone: '',
-    leader: '',
-    contactPhone: '',
     dutyTeam: '',
     personNum: '',
+    leader: '',
+    contactPhone: '',
     startTime: '',
-    endTime: '',
-    personType: ''
+    endTime: ''
   })
 }
 
+// 删除行
 const removeRow = (index) => {
   formDataList.value.splice(index, 1)
 }
+
 
 
 const formDataList = ref([
@@ -458,7 +690,9 @@ const formData = reactive({
 /* 校验规则 */
 const rules = {
   personName: [{ required: true, message: '请选择值班人员', trigger: 'change' }],
+  personType: [{ required: true, message: '请选择人员类型', trigger: 'change' }],
   deptId: [{ required: true, message: '请输入单位', trigger: 'blur' }],
+  duty: [{ required: true, message: '请输入职务', trigger: 'blur' }],
   seatName: [{ required: true, message: '请选择值班席位', trigger: 'change' }],
   seatPhone: [{ required: true, message: '请输入席位电话', trigger: 'blur' }],
   leader: [{ required: true, message: '请输入负责人', trigger: 'blur' }],
@@ -609,4 +843,87 @@ const deleteRow = (row) => {
   margin-bottom: 16px;
   border-radius: 4px;
 }
+.inline-form {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: flex-end;
+  
+  
+  .el-form-item {
+    margin-bottom: 0;
+    margin-right: 16px;
+  }
+}
+
+.editable-table {
+  .el-input,
+  .el-select,
+  .el-tree-select,
+  .el-date-picker {
+    width: 100%;
+    
+    // 取消输入框边框
+    :deep(.el-input__wrapper),
+    :deep(.el-select__wrapper),
+    :deep(.el-tree-select__wrapper),
+    :deep(.el-date-picker__wrapper) {
+      box-shadow: none !important;
+      border: none !important;
+      background-color: transparent;
+      padding: 0;
+    }
+    
+    :deep(.el-input__inner) {
+      border: none !important;
+    }
+  }
+  
+  // 取消 el-form-item 边框
+  .el-form-item {
+    margin-bottom: 0;
+    
+    :deep(.el-form-item__content) {
+      border: none !important;
+    }
+  }
+  
+  .el-table__cell {
+    padding: 8px 0;
+  }
+  
+  // 必填项红色星号
+  .el-table-column--label {
+    color: #606266;
+    
+    &::before {
+      content: '*';
+      color: #f56c6c;
+      margin-right: 4px;
+    }
+  }
+  
+  // 聚焦时也不显示边框
+  :deep(.el-input__wrapper.is-focus),
+  :deep(.el-select__wrapper.is-focus),
+  :deep(.el-tree-select__wrapper.is-focus),
+  :deep(.el-date-picker__wrapper.is-focus) {
+    box-shadow: none !important;
+    border: none !important;
+  }
+  
+  // 悬停时也不显示边框
+  :deep(.el-input__wrapper:hover),
+  :deep(.el-select__wrapper:hover),
+  :deep(.el-tree-select__wrapper:hover),
+  :deep(.el-date-picker__wrapper:hover) {
+    box-shadow: none !important;
+    border: none !important;
+  }
+}
+
+
+.table-toolbar {
+  text-align: right;
+}
+
 </style>
