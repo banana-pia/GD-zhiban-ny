@@ -36,6 +36,12 @@
       <el-button type="primary" @click="openAddDialog">
         新增值班人员
       </el-button>
+      <el-button type="primary" @click="">
+        上传文件
+      </el-button>
+      <el-button type="primary" @click="downloadTemplate">
+        模板下载
+      </el-button>
     </div>
 
     <!-- 排班表格 -->
@@ -47,14 +53,16 @@
     >
       <el-table-column prop="personName" label="值班人员" />
       <el-table-column prop="personType" label="人员类别" />
-      <el-table-column prop="deptName" label="单位" />
-      <el-table-column prop="duty" label="职务" />
-      <el-table-column prop="dutyTeam" label="值班分队" />
-      <el-table-column prop="startTime" label="开始时间" />
-      <el-table-column prop="endTime" label="结束时间" />
-      <el-table-column prop="personNum" label="人数" />
       <el-table-column prop="seatName" label="值班席位" />
       <el-table-column prop="seatPhone" label="席位电话" />
+      <el-table-column prop="deptName" label="单位" />
+      <el-table-column prop="duty" label="职务" />
+      <el-table-column prop="startTime" label="开始时间" />
+      <el-table-column prop="endTime" label="结束时间" />
+      <el-table-column prop="dutyTeam" label="值班分队" />
+      <el-table-column prop="personNum" label="人数" />
+      <el-table-column prop="dutyTeam" label="车辆（台）" />
+      <el-table-column prop="dutyTeam" label="装备器材（件、套）" />
       <el-table-column prop="leader" label="负责人" />
       <el-table-column prop="contactPhone" label="联系人电话" />
 
@@ -95,9 +103,10 @@
       :title="dialogTitle"
       v-model="dialogVisible"
       width="1200px"
+      class="duty-dialog"
       :close-on-click-modal="false"
     >
-     
+     <div class="dialog-content">
       <el-table
       v-if ="dialogTitle === '新增值班人员'"
   :data="formDataList"
@@ -220,6 +229,22 @@
     </template>
   </el-table-column>
 
+  <el-table-column label="车辆（台） *" width="80">
+    <template #default="{ row }">
+      <el-form-item :rules="tableRules.personNum">
+        <el-input v-model="row.personNum" placeholder="请输入" />
+      </el-form-item>
+    </template>
+  </el-table-column>
+
+  <el-table-column label="装备器材（件、套） *" width="80">
+    <template #default="{ row }">
+      <el-form-item :rules="tableRules.personNum">
+        <el-input v-model="row.personNum" placeholder="请输入" />
+      </el-form-item>
+    </template>
+  </el-table-column>
+
   <el-table-column label="负责人 *" width="100">
     <template #default="{ row }">
       <el-form-item :rules="tableRules.leader">
@@ -243,16 +268,7 @@
       <el-button type="danger" link @click="removeRow($index)">删除</el-button>
     </template>
   </el-table-column>
-</el-table>
-
-      <!-- 操作按钮 -->
-      <div class="table-toolbar" style="margin-top: 16px;">
-        <el-button @click="dialogVisible = false" v-if="dialogTitle === '新增值班人员'">
-          取消
-        </el-button>
-        <el-button type="primary" @click="addRow" v-if ="dialogTitle === '新增值班人员'">新增值班人员</el-button>
-        <el-button type="success" @click="submitAll" v-if ="dialogTitle === '新增值班人员'">提交全部</el-button>
-      </div>
+      </el-table>
 
       
       <el-form
@@ -327,6 +343,13 @@
           <el-input v-model="formData.personNum" />
         </el-form-item>
 
+        <el-form-item label="车辆（台）" prop="personNum">
+          <el-input v-model="formData.personNum" />
+        </el-form-item>
+        <el-form-item label="装备器材（件、套）" prop="personNum">
+          <el-input v-model="formData.personNum" />
+        </el-form-item>
+
         <el-form-item label="负责人" prop="leader">
           <el-input v-model="formData.leader" />
         </el-form-item>
@@ -353,14 +376,20 @@
           />
         </el-form-item>
       </el-form>
-
-      <template #footer>
-        <el-button @click="dialogVisible = false" v-if="dialogTitle === '修改值班信息'">
-          取消
-        </el-button>
-        <el-button type="primary" @click="submitForm" v-if="dialogTitle === '修改值班信息'">
-          确定
-        </el-button>
+     </div>
+      <template #footer class="dialog-footer">
+        <!-- 新增场景 -->
+        <div v-if="dialogTitle === '新增值班人员'">
+          <el-button @click="dialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="addRow">新增值班人员</el-button>
+          <el-button type="success" @click="submitAll">提交全部</el-button>
+        </div>
+        
+        <!-- 编辑场景 -->
+        <div v-if="dialogTitle === '修改值班信息'">
+          <el-button @click="dialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="submitForm">确定</el-button>
+        </div>
       </template>
     </el-dialog>
 
@@ -371,6 +400,8 @@ import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { saveDuty, queryDuty, deleteDuty, listGdPerson } from '@/api/duty'
 import { listDept } from "@/api/system/dept"
+import * as XLSX from 'xlsx'
+import { saveAs } from 'file-saver'
 
 const { proxy } = getCurrentInstance()
 onMounted(() => {
@@ -394,9 +425,64 @@ const pageSize = ref(10)
 const currentPage = ref(1)
 const total = ref(0)
 
+/* 下载 Excel 模板 */
+const downloadTemplate = () => {
+  // 定义表头
+  const headerData = [
+    ['值班人员 *', '人员类别 *', '单位 *', '职务 *', '值班席位 *', '席位电话 *', 
+     '开始时间 *', '结束时间 *', '值班分队 *', '人数 *', '车辆（台）*', 
+     '装备器材（件、套）*', '负责人 *', '联系电话 *']
+  ]
+
+  // 定义示例数据行
+  const sampleData = [
+    ['张三', '现役', '作战部', '部长', '值班领导', '010-12345678', 
+     '2024-01-15 08:00:00', '2024-01-15 18:00:00', '一小队', '5', '2', 
+     '10', '李四', '13800138000']
+  ]
+
+  // 合并数据
+  const worksheetData = [...headerData, ...sampleData]
+
+  // 创建工作表
+  const ws = XLSX.utils.aoa_to_sheet(worksheetData)
+
+  // 设置列宽
+  ws['!cols'] = [
+    { wch: 12 }, { wch: 12 }, { wch: 15 }, { wch: 10 }, { wch: 12 }, { wch: 15 },
+    { wch: 20 }, { wch: 20 }, { wch: 12 }, { wch: 8 }, { wch: 10 }, 
+    { wch: 15 }, { wch: 10 }, { wch: 15 }
+  ]
+
+  // 设置单元格样式（表头背景色）
+  const range = XLSX.utils.decode_range(ws['!ref'])
+  for (let C = range.s.c; C <= range.e.c; ++C) {
+    const address = XLSX.utils.encode_col(C) + "1"
+    if (!ws[address]) continue
+    ws[address].s = {
+      fill: { fgColor: { rgb: "4472C4" } },
+      font: { bold: true, color: { rgb: "FFFFFF" } },
+      alignment: { horizontal: "center", vertical: "center" }
+    }
+  }
+
+  // 创建工作簿
+  const wb = XLSX.utils.book_new()
+  XLSX.utils.book_append_sheet(wb, ws, '值班人员模板')
+
+  // 生成 Excel 文件并下载
+  const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' })
+  const blob = new Blob([wbout], { 
+    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+  })
+  saveAs(blob, '值班人员模板.xlsx')
+  
+  ElMessage.success('模板下载成功')
+}
+
 // 表格行合并方法
 const objectSpanMethod = ({ row, column, rowIndex, columnIndex }) => {
-  if (columnIndex === 8 || columnIndex === 9 || columnIndex === 10 || columnIndex === 11) {
+  if (columnIndex === 8 || columnIndex === 9 || columnIndex === 10 || columnIndex === 11|| columnIndex === 12|| columnIndex === 13) {
     if (rowIndex === 0) {
       // 第一行：合并所有行
       return [formDataList.value.length, 1]
@@ -411,6 +497,15 @@ const objectSpanMethod = ({ row, column, rowIndex, columnIndex }) => {
 
 // 提交全部 - 按顺序逐行提交
 const submitAll = async () => {
+  const firstRow = formDataList.value[0]
+  const lastSixFields = ['dutyTeam', 'personNum', 'leader', 'contactPhone', ]
+  
+  for (let i = 1; i < formDataList.value.length; i++) {
+    const row = formDataList.value[i]
+    for (const field of lastSixFields) {
+      row[field] = firstRow[field]
+    }
+  }
   // 1. 先校验所有行
   let hasError = false
   let errorRow = 0
@@ -533,6 +628,21 @@ const removeRow = (index) => {
 
 
 const formDataList = ref([
+  {
+    id: null,
+    personName: '',
+    deptId: '',
+    duty: '',
+    seatName: '',
+    seatPhone: '',
+    leader: '',
+    contactPhone: '',
+    dutyTeam: '',
+    personNum: '',
+    startTime: '',
+    endTime: '',
+    personType: ''
+  },
   {
     id: null,
     personName: '',
@@ -926,4 +1036,27 @@ const deleteRow = (row) => {
   text-align: right;
 }
 
+.duty-dialog {
+  :deep(.el-dialog__body) {
+    display: flex;
+    flex-direction: column;
+    height: 760px!important; /* 弹窗总高度 - header - footer */
+    padding: 0;
+  }
+
+  .dialog-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+  }
+
+  .dialog-footer {
+    border-top: 1px solid #ebeef5;
+    padding: 16px;
+    text-align: right;
+    background-color: #fff;
+  }
+}
+
 </style>
+

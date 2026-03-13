@@ -38,6 +38,12 @@
       <el-button type="primary" @click="openAddDialog">
         新增任务
       </el-button>
+      <el-button type="primary" @click="">
+        上传文件
+      </el-button>
+      <el-button type="primary" @click="downloadTemplate">
+        模板下载
+      </el-button>
     </div>
 
     <!-- 排班表格 -->
@@ -47,8 +53,41 @@
       stripe
       style="width: 100%"
       :scrollbar-always-on="true"
+      class="center-header-table"
     >
-      <el-table-column prop="taskName" label="任务名称" />
+      <el-table-column label="动员行动" header-align="center">
+        <el-table-column prop="" label="动员单位（师单位）"  header-align="center"/>
+        <el-table-column prop="" label="指挥员（姓名、职务及联系方式）" header-align="center" />
+        <el-table-column prop="" label="执行任务（任务名称）"  header-align="center"/>
+        <el-table-column prop="" label="任务分队（分队名称及人数）" header-align="center" />
+        <el-table-column prop="" label="动员装备"  header-align="center"/>
+        <el-table-column prop="" label="任务地点" header-align="center" />
+        <el-table-column prop="" label="任务分队完成准备时间" header-align="center" />
+        <el-table-column prop="" label="行动开始时间"  header-align="center"/>
+        <el-table-column prop="" label="行动结束时间"  header-align="center"/>
+        <el-table-column prop="" label="任务分队完成撤收时间"  header-align="center"/>
+        <el-table-column prop="" label="备注" header-align="center" />
+      </el-table-column>
+      <el-table-column label="任务对象" header-align="center"> 
+        <el-table-column prop="" label="任务部队（任务需求单位）" header-align="center" />
+        <el-table-column prop="" label="执行任务（担负的具体任务）"  header-align="center"/>
+        <el-table-column prop="" label="主要装备数量"  header-align="center"/>
+        <el-table-column prop="" label="人员数量"  header-align="center"/>
+        <el-table-column prop="" label="备注" header-align="center" />
+      </el-table-column>
+      <el-table-column label="详细信息" header-align="center"> 
+        <el-table-column prop="" label="动员单位（团单位）"  header-align="center"/> 
+        <el-table-column prop="" label="任务类型"  header-align="center"/> 
+        <el-table-column prop="" label="任务天数"  header-align="center"/> 
+        <el-table-column prop="" label="执行任务的人数"  header-align="center"/> 
+        <el-table-column prop="" label="人·天数"  header-align="center"/> 
+        <el-table-column prop="" label="民兵担负的具体任务"  header-align="center"/>  
+        <el-table-column prop="" label="批准用兵单位"  header-align="center"/> 
+        <el-table-column prop="" label="批准用兵文件名称" header-align="center" /> 
+        <el-table-column prop="" label="发文字号"  header-align="center"/> 
+        <el-table-column prop="" label="指挥单位"  header-align="center"/> 
+      </el-table-column>
+      <!-- <el-table-column prop="taskName" label="任务名称" />
       <el-table-column prop="taskSource" label="任务来源" />
       <el-table-column prop="taskType" label="任务类型" />
       <el-table-column prop="demandUnitDivision" label="需求单位" />
@@ -66,9 +105,9 @@
       <el-table-column prop="approveFileName" label="批准用兵文件名称" />
       <el-table-column prop="fileNumber" label="发文字号" />
       <el-table-column prop="commandUnit" label="指挥单位" />
-      <el-table-column prop="commanderInfo" label="指挥员姓名职务以及联系方式" />
+      <el-table-column prop="commanderInfo" label="指挥员姓名职务以及联系方式" /> -->
 
-      <el-table-column label="操作" width="160" fixed="right">
+      <el-table-column label="操作" width="160" fixed="right" header-align="center">
         <template #default="{ row }">
           <el-button
             type="primary"
@@ -102,7 +141,7 @@
     <el-dialog
       :title="dialogTitle"
       v-model="dialogVisible"
-      width="800px"
+      width="1200px"
       :close-on-click-modal="false"
     >
       <el-form
@@ -111,8 +150,212 @@
         :rules="rules"
         label-width="140px"
         :inline="false"
+        style="margin-right: 40px;"
       >
+        <div style="text-align: center; font-weight: bold; margin-bottom: 16px;font-size: 16px;">动员行动</div>
         <el-row :gutter="10">
+          <el-col :span="12">
+            <el-form-item label="动员单位（师单位）" prop="taskName" label-width="220px">
+              <el-input v-model="formData.taskName"/>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="指挥员(姓名、职务及联系方式)" prop="taskSource" label-width="220px">
+              <el-input v-model="formData.taskSource" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+
+        <el-row :gutter="10">
+          <el-col :span="12">
+            <el-form-item label="执行任务(任务名称)" prop="taskName" label-width="220px">
+              <el-input v-model="formData.taskName" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="任务分队(分队名称及人数)" prop="taskSource" label-width="220px">
+              <el-input v-model="formData.taskSource" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+
+        <el-row :gutter="10">
+          <el-col :span="12">
+            <el-form-item label="动员装备" prop="taskName" label-width="220px">
+              <el-input v-model="formData.taskName" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="任务地点" prop="taskSource" label-width="220px">
+              <el-input v-model="formData.taskSource" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+
+        <el-row :gutter="10">
+          <el-col :span="12">
+            <el-form-item label="任务分队完成准备时间" prop="taskTimeStart" label-width="220px">
+              <el-date-picker
+                v-model="formData.taskTimeStart"
+                placeholder="任务分队完成准备时间"
+                type="datetime"
+                value-format="YYYY-MM-DD HH:mm:ss"
+              />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="行动开始时间" prop="taskTimeEnd" label-width="220px">
+              <el-date-picker
+                v-model="formData.taskTimeEnd"
+                placeholder="行动开始时间"
+                type="datetime"
+                value-format="YYYY-MM-DD HH:mm:ss"
+              />
+            </el-form-item>
+          </el-col>
+        </el-row>
+
+        <el-row :gutter="10">
+          <el-col :span="12">
+            <el-form-item label="行动结束时间" prop="taskTimeStart" label-width="220px">
+              <el-date-picker
+                v-model="formData.taskTimeStart"
+                placeholder="行动结束时间"
+                type="datetime"
+                value-format="YYYY-MM-DD HH:mm:ss"
+              />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="任务分队完成撤收时间" prop="taskTimeEnd" label-width="220px">
+              <el-date-picker
+                v-model="formData.taskTimeEnd"
+                placeholder="任务分队完成撤收时间"
+                type="datetime"
+                value-format="YYYY-MM-DD HH:mm:ss"
+              />
+            </el-form-item>
+          </el-col>
+        </el-row>
+
+        <el-row :gutter="10">
+          <el-col :span="24">
+            <el-form-item label="备注" prop="taskName" label-width="220px">
+              <el-input v-model="formData.taskName" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+
+        <div style="text-align: center; font-weight: bold; margin: 16px 0;font-size: 16px;">任务对象</div>
+        
+        <el-row :gutter="10">
+          <el-col :span="12">
+            <el-form-item label="任务部队（任务需求单位）" prop="taskName" label-width="220px">
+              <el-input v-model="formData.taskName" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="执行任务（担负的具体任务）" prop="taskSource" label-width="220px">
+              <el-input v-model="formData.taskSource" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+
+        <el-row :gutter="10">
+          <el-col :span="12">
+            <el-form-item label="主要装备数量" prop="taskName" label-width="220px">
+              <el-input v-model="formData.taskName" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="人员数量" prop="taskSource" label-width="220px">
+              <el-input v-model="formData.taskSource" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+
+        <el-row :gutter="10">
+          <el-col :span="24">
+            <el-form-item label="备注" prop="taskName" label-width="220px">
+              <el-input v-model="formData.taskName" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+
+        <div style="text-align: center; font-weight: bold; margin: 16px 0;font-size: 16px;">详细信息</div>
+
+        <el-row :gutter="10">
+          <el-col :span="12">
+            <el-form-item label="动员单位 (团单位)" prop="taskName" label-width="220px">
+              <el-input v-model="formData.taskName" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="任务类型" prop="taskSource" label-width="220px">
+              <el-tree-select
+                v-model="formData.deptId"
+                :data="deptOptions"
+                :props="{ value: 'deptId', label: 'deptName', children: 'children' }"
+                value-key="deptId"
+                placeholder="选择单位"
+                check-strictly
+              />
+            </el-form-item>
+          </el-col>
+        </el-row>
+
+        <el-row :gutter="10">
+          <el-col :span="12">
+            <el-form-item label="任务天数" prop="taskName" label-width="220px">
+              <el-input v-model="formData.taskName" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="执行任务的人数" prop="taskSource" label-width="220px">
+              <el-input v-model="formData.taskSource" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+
+        <el-row :gutter="10">
+          <el-col :span="12">
+            <el-form-item label="人.天数" prop="taskName" label-width="220px">
+              <el-input v-model="formData.taskName" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="民兵担负的具体任务" prop="taskSource" label-width="220px">
+              <el-input v-model="formData.taskSource" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+
+        <el-row :gutter="10">
+          <el-col :span="12">
+            <el-form-item label="批准用兵单位" prop="taskName" label-width="220px">
+              <el-input v-model="formData.taskName" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="批准用兵文件名称" prop="taskSource" label-width="220px">
+              <el-input v-model="formData.taskSource" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+
+        <el-row :gutter="10">
+          <el-col :span="12">
+            <el-form-item label="发文字号" prop="taskName" label-width="220px">
+              <el-input v-model="formData.taskName" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="指挥单位" prop="taskSource" label-width="220px">
+              <el-input v-model="formData.taskSource" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <!-- <el-row :gutter="10">
           <el-col :span="12">
             <el-form-item label="任务名称" prop="taskName">
               <el-input v-model="formData.taskName" />
@@ -133,7 +376,6 @@
           </el-col>
           <el-col :span="12">
             <el-form-item label="需求单位（师）" prop="deptId">
-              <!-- <el-input v-model="formData.deptId" /> -->
             <el-tree-select
               v-model="formData.deptId"
               :data="deptOptions"
@@ -254,7 +496,7 @@
               <el-input v-model="formData.commanderInfo" />
             </el-form-item>
           </el-col>
-        </el-row>
+        </el-row> -->
       </el-form>
 
       <template #footer>
@@ -274,6 +516,8 @@ import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { saveMilitia, queryMilitia, deleteMilitia } from '@/api/duty'
 import { listDept } from "@/api/system/dept"
+import * as XLSX from 'xlsx'
+import { saveAs } from 'file-saver'
 
 const { proxy } = getCurrentInstance()
 
@@ -284,6 +528,77 @@ onMounted(() => {
   })
   getMilitiaList()
 })
+
+/* 下载 Excel 模板 */
+const downloadTemplate = () => {
+  // 定义表头（按三个大模块分组）
+  const headerData = [
+    // 第一行：大模块标题
+    ['动员行动', '', '', '', '', '', '', '', '', '', '', 
+     '任务对象', '', '', '', '', 
+     '详细信息', '', '', '', '', '', '', '', '', ''],
+    
+    // 第二行：具体列名
+    ['动员单位（师单位）', '指挥员（姓名、职务及联系方式）', '执行任务（任务名称）', 
+     '任务分队（分队名称及人数）', '动员装备', '任务地点', 
+     '任务分队完成准备时间', '行动开始时间', '行动结束时间', 
+     '任务分队完成撤收时间', '备注',
+     '任务部队（任务需求单位）', '执行任务（担负的具体任务）', 
+     '主要装备数量', '人员数量', '备注',
+     '动员单位（团单位）', '任务类型', '任务天数', 
+     '执行任务的人数', '人·天数', '民兵担负的具体任务', 
+     '批准用兵单位', '批准用兵文件名称', '发文字号', '指挥单位']
+  ]
+
+  // 定义示例数据行
+  const sampleData = [
+    ['第一师', '李指挥长 13800138000', '紧急救援任务', 
+     '作战一营 50 人', '装甲车 5 辆', 'A 区域山区', 
+     '2024-01-15 08:00:00', '2024-01-15 10:00:00', '2024-01-20 10:00:00', 
+     '2024-01-20 18:00:00', '无',
+     '军区司令部', '山地搜救行动', 
+     '装备若干', '50', '无',
+     '第一团', '救援任务', '5', 
+     '50', '250', '搜救', 
+     '军区司令部', '军令字第 2024001 号', '军字 [2024] 第 001 号', '第一师']
+  ]
+
+  // 合并数据
+  const worksheetData = [...headerData, ...sampleData]
+
+  // 创建工作表
+  const ws = XLSX.utils.aoa_to_sheet(worksheetData)
+
+  // 设置列宽
+  ws['!cols'] = [
+    { wch: 20 }, { wch: 25 }, { wch: 20 }, { wch: 25 }, { wch: 15 }, { wch: 15 },
+    { wch: 22 }, { wch: 22 }, { wch: 22 }, { wch: 22 }, { wch: 15 },
+    { wch: 25 }, { wch: 25 }, { wch: 15 }, { wch: 15 }, { wch: 15 },
+    { wch: 20 }, { wch: 15 }, { wch: 12 }, { wch: 15 }, { wch: 12 }, 
+    { wch: 25 }, { wch: 20 }, { wch: 25 }, { wch: 20 }, { wch: 15 }
+  ]
+
+  // 合并第一行的单元格（三个大模块）
+  ws['!merges'] = [
+    { s: { r: 0, c: 0 }, e: { r: 0, c: 10 } },   // 动员行动 (11 列)
+    { s: { r: 0, c: 11 }, e: { r: 0, c: 15 } },  // 任务对象 (5 列)
+    { s: { r: 0, c: 16 }, e: { r: 0, c: 25 } }   // 详细信息 (10 列)
+  ]
+
+  // 创建工作簿
+  const wb = XLSX.utils.book_new()
+  XLSX.utils.book_append_sheet(wb, ws, '动员任务模板')
+
+  // 生成 Excel 文件并下载
+  const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' })
+  const blob = new Blob([wbout], { 
+    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+  })
+  saveAs(blob, '任务模板.xlsx')
+  
+  ElMessage.success('模板下载成功')
+}
+
 
 const pageSize = ref(10)
 const currentPage = ref(1)
@@ -468,7 +783,7 @@ const rules = {
 
 /* 新增 */
 const openAddDialog = () => {
-  dialogTitle.value = '新增值班人员'
+  dialogTitle.value = '新增值班任务'
   Object.assign(formData, {
     id: null,
    taskName: '',                 // 任务名称
